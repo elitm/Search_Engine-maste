@@ -16,7 +16,8 @@ class Parse:
         """
         text_tokens = word_tokenize(text)
         text_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
-        return text_tokens_without_stopwords
+        print(text_tokens_without_stopwords);
+        # return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
         """

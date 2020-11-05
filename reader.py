@@ -15,4 +15,17 @@ class ReadFile:
         """
         full_path = os.path.join(self.corpus_path, file_name)
         df = pd.read_parquet(full_path, engine="pyarrow")
+        # print(df.values.tolist())
         return df.values.tolist()
+
+    def read_all_files_from_corpus(self):
+        dirs_in_corpus = os.listdir(self.corpus_path)
+        for dirname in dirs_in_corpus:
+            joined_name = os.path.join(self.corpus_path, dirname)
+            filename = os.listdir(joined_name)
+            # print(os.path.join(joined_name, filename[0]))
+            print("------------")
+            self.read_file(os.path.join(joined_name, filename[0]))
+
+
+
