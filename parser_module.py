@@ -5,8 +5,15 @@ from document import Document
 
 class Parse:
 
+
+
     def __init__(self):
-        self.stop_words = stopwords.words('english')
+        # self.stop_words = stopwords.words('english')
+
+        self.stop_words = set(stopwords.words("english"))
+        # add custom words
+        self.stop_words.add('literally') # tell me how
+
 
     def parse_sentence(self, text):
         """
@@ -14,10 +21,11 @@ class Parse:
         :param text:
         :return:
         """
+
         text_tokens = word_tokenize(text)
         text_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
-        print(text_tokens_without_stopwords);
-        # return text_tokens_without_stopwords
+        # print(text_tokens_without_stopwords);
+        return text_tokens_without_stopwords
 
     def parse_doc(self, doc_as_list):
         """

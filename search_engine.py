@@ -4,6 +4,8 @@ from parser_module import Parse
 from indexer import Indexer
 from searcher import Searcher
 import utils
+# import nltk
+# nltk.download('punkt')
 
 
 def run_engine():
