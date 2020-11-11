@@ -2,20 +2,19 @@ from nltk.corpus import stopwords
 
 from reader import ReadFile
 from parser_module import Parse
-
-# import nltk
-# nltk.download('stopwords')
+import os
 
 
 def main():
-    rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
-    rf.read_all_files_from_corpus()
+    # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
+    # rf.read_all_files_from_corpus()
 
-    # rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
-    # list2D = rf2.read_file("sample.parquet")
-    # print(list2D)
-
-    # parse = Parse()
+    rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
+    list2D = rf2.read_file("sample.parquet")
+    print(list2D)
+    print(os.getcwd())
+    parse = Parse()
+    parse.parse_doc(list2D[3])
     # for lst in list2D:
     #     lst = [x if x is not None else '' for x in lst] # replace None with ''
     #     stringy = ''.join(lst)
