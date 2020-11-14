@@ -29,8 +29,10 @@ def run_engine():
     print('Finished parsing and indexing. Starting to export files')
 
     utils.save_obj(indexer.inverted_idx, "inverted_idx")
+    print(indexer.inverted_idx)
+    print("\n")
     utils.save_obj(indexer.postingDict, "posting")
-
+    print(indexer.postingDict)
 
 def load_index():
     print('Load inverted index')

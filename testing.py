@@ -10,11 +10,26 @@ def main():
     # rf.read_all_files_from_corpus()
 
     rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
-    list2D = rf2.read_file("sample.parquet")
+    list2D = rf2.read_file("sample2.parquet")
     print(list2D)
-    print(os.getcwd())
+    # print(os.getcwd())
     parse = Parse()
-    parse.parse_doc(list2D[3])
+    # hashtag function testing
+    # print(parse.handle_hashtag("iLoveFood"))
+    # print(parse.handle_hashtag("ILoveFood"))
+    # print(parse.handle_hashtag("i_love_food"))
+    # for i in range (len(list2D)):
+    doc = parse.parse_doc(list2D[73])
+        # print(doc.doc_id)
+
+    # print(doc.quote_text)
+    # print("\n")
+    # print(doc.full_text)
+    # print(parse.numbers_over_1K("55,442"))
+    # print(parse.simple_numbers_over_1K("10,123,000"))
+    # x = int(float("1010.56"))
+    # y = int(float("10,123".replace(",","")))
+
     # for lst in list2D:
     #     lst = [x if x is not None else '' for x in lst] # replace None with ''
     #     stringy = ''.join(lst)
