@@ -1,13 +1,11 @@
-import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from document import Document
 import string
 import os
 
+
 class Parse:
-
-
 
     def __init__(self):
         self.stop_words = stopwords.words('english')
@@ -17,9 +15,9 @@ class Parse:
         # self.stop_words.add('literally') # tell me how
         # self.more_stop_words = ["twitter", "https", "www", "i"]
 
-        self.temp_dict = {} # key: word, value: list of document ids
+        self.temp_dict = {}  # key: word, value: list of document ids
 
-        self.lowercase_dict = dict.fromkeys(string.ascii_lowercase,"")
+        self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
         for i in self.lowercase_dict.keys():
             self.lowercase_dict[i] = os.getcwd() + "\\" + i + ".txt"
 
@@ -27,32 +25,32 @@ class Parse:
         for j in self.uppercase_dict.keys():
             self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
 
-        self.other_chars = os.getcwd() + "\\" + "other_chars.txt" # will hold file with text beginning in characters that are not letters (numbers, #, $...)
+        self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
 
         self.documents = []
 
-    def handle_hashtag(self, hashtag_str:str):
+    def handle_hashtag(self, hashtag_str: str):
         glue = ' '
         if hashtag_str.__contains__("_"):
             result = hashtag_str.split("_")
-        else: # separate by uppercase letters
+        else:  # separate by uppercase letters
             result = ''.join(glue + x.lower() if x.isupper() else x for x in hashtag_str).strip(glue).split(glue)
 
         result.append("#" + hashtag_str.lower().replace("_", ""))
 
         return result
 
-    def numbers_over_1K(self, num_as_str): # need to deal with "3 million, 4 thousand..."
-        k = pow(10,3)
-        m = pow(10,6)
-        b = pow(10,9)
+    def numbers_over_1K(self, num_as_str):  # need to deal with "3 million, 4 thousand..."
+        k = pow(10, 3)
+        m = pow(10, 6)
+        b = pow(10, 9)
         num = int(float(num_as_str.replace(",", "")))
         if k <= num < m:
-            return str(int(num)/k) + "K"
+            return str(int(num) / k) + "K"
         if m <= num < b:
-            return str(int(num)/m) + "M"
+            return str(int(num) / m) + "M"
         if num >= b:
-            return str(int(num)/b) + "B"
+            return str(int(num) / b) + "B"
 
     def handle_tags(self, tag_string):
         return "@" + tag_string
@@ -62,11 +60,21 @@ class Parse:
             return str.upper(word_to_check)
         return word_to_check
 
-    def handle_url(self, url):
+    def handle_url(self, url_token):
         # remove http:\\ ??
-        url_split = re.split('://www.([\w\-\.]+)\/', url)
-        print(url_split)
-        return url_split
+        splited_url = []
+        space_or_char = ""
+
+        delimiters = {"=", "?", "/", ":"}
+
+        for char in url_token:
+            if char in delimiters and space_or_char != "":
+                splited_url.append(space_or_char)
+                space_or_char = ""
+            else:
+                space_or_char += char
+        splited_url.remove("/")
+        return (splited_url)
 
     def parse_sentence(self, text):
         """
@@ -74,10 +82,16 @@ class Parse:
         :param text:
         :return:
         """
-
+        with open('stop_words.txt', 'r') as f:
+            lines = f.read().splitlines()
         text_tokens = word_tokenize(text)
+        text_tokens_without_stopwords = []
         # text_lower_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
-        text_tokens_without_stopwords = [w for w in text_tokens if w not in self.stop_words]
+        for w in text_tokens:
+            if w.lower() not in lines:
+                text_tokens_without_stopwords.append(w)
+
+        # text_tokens_without_stopwords = [w for w in text_tokens if w not in f.read()]
         # print(text_tokens_without_stopwords)
         return text_tokens_without_stopwords
 
@@ -96,39 +110,20 @@ class Parse:
         quote_text = doc_as_list[6]
         quote_url = doc_as_list[7]
         term_dict = {}
-        tokenized_text = self.parse_sentence(full_text)
+
         new_tokenized_text = []
-        # print("\ntokenized text: " + str(tokenized_text))
+        tokenized_text1 = self.parse_sentence(full_text)
 
-        doc_length = len(tokenized_text)  # after text operations - length of full_text
+        tokenized_text = self.textToTokenize(full_text)
+        tokenized_retweet = self.textToTokenize(retweet_text)
+        tokenized_quote = self.textToTokenize(quote_text)
 
-        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%", "percentage": "%"}
-
-
-        for i in range(doc_length):
-            term = tokenized_text[i]
-            next_term = None
-            if i + 1 < doc_length:
-                next_term = tokenized_text[i+1]
-            if term is "@":
-                new_tokenized_text.append(self.handle_tags(next_term))
-            elif term is "#":
-                new_tokenized_text.extend(self.handle_hashtag(next_term))
-            elif str.isdigit(term.replace(",", "")): # if term is a number
-                num = str(term.replace(",", ""))
-                if float(num) > 999:
-                    num = self.numbers_over_1K(term)
-                if next_term is not None and next_term.lower() in num_dict.keys():
-                    new_tokenized_text.append(num + num_dict[next_term])
-                else:
-                    new_tokenized_text.append(num)
-            else:
-                new_tokenized_text.append(self.upper_or_lower(term))
+        doc_length = len(tokenized_text1)  # after text operations - length of full_text
 
         # our rules: numbers? emojis? spelling mistakes? bed.Today?
 
+        new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote
 
-        print(tokenized_text)
         print(new_tokenized_text)
         print("----")
 
@@ -153,6 +148,31 @@ class Parse:
     #             file = open(self.lowercase_dict[letter],"a")
     #             file.write()
 
+    def textToTokenize(self, text):
+        old_token = self.parse_sentence(text)
+        doc_length = len(old_token)
+        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
+                    "percentage": "%"}
 
+        new_tokenized_text = []
 
-
+        for i in range(doc_length):
+            term = old_token[i]
+            next_term = None
+            if i + 1 < doc_length:
+                next_term = old_token[i + 1]
+            if term is "@":
+                new_tokenized_text.append(self.handle_tags(next_term))
+            elif term is "#":
+                new_tokenized_text.extend(self.handle_hashtag(next_term))
+            elif str.isdigit(term.replace(",", "")):  # if term is a number
+                num = str(term.replace(",", ""))
+                if float(num) > 999:
+                    num = self.numbers_over_1K(term)
+                if next_term is not None and next_term.lower() in num_dict.keys():
+                    new_tokenized_text.append(num + num_dict[next_term])
+                else:
+                    new_tokenized_text.append(num)
+            else:
+                new_tokenized_text.append(self.upper_or_lower(term))
+        return new_tokenized_text
