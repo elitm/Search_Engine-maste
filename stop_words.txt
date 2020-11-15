@@ -126,7 +126,7 @@ don
 should
 now
 twitter
-RT
+rt
 www
 :
 ,

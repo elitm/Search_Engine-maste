@@ -29,18 +29,18 @@ class Parse:
 
         self.documents = []
 
+
     def handle_hashtag(self, hashtag_str: str):
         glue = ' '
         if hashtag_str.__contains__("_"):
             result = hashtag_str.split("_")
         else:  # separate by uppercase letters
             result = ''.join(glue + x.lower() if x.isupper() else x for x in hashtag_str).strip(glue).split(glue)
-
         result.append("#" + hashtag_str.lower().replace("_", ""))
 
         return result
 
-    def numbers_over_1K(self, num_as_str):  # need to deal with "3 million, 4 thousand..."
+    def numbers_over_1K(self, num_as_str):
         k = pow(10, 3)
         m = pow(10, 6)
         b = pow(10, 9)
@@ -52,6 +52,7 @@ class Parse:
         if num >= b:
             return str(int(num) / b) + "B"
 
+
     def handle_tags(self, tag_string):
         return "@" + tag_string
 
@@ -60,21 +61,23 @@ class Parse:
             return str.upper(word_to_check)
         return word_to_check
 
-    def handle_url(self, url_token):
-        # remove http:\\ ??
-        splited_url = []
+    def handle_url(self, url_token:str):
+        # url_token.replace("https", "")
+        url_token = url_token[8:]
+        split_url = []
         space_or_char = ""
 
         delimiters = {"=", "?", "/", ":"}
 
         for char in url_token:
             if char in delimiters and space_or_char != "":
-                splited_url.append(space_or_char)
+                split_url.append(space_or_char)
                 space_or_char = ""
             else:
                 space_or_char += char
-        splited_url.remove("/")
-        return (splited_url)
+        split_url.append(space_or_char)
+        # split_url.remove("/")
+        return split_url
 
     def parse_sentence(self, text):
         """
@@ -112,17 +115,20 @@ class Parse:
         term_dict = {}
 
         new_tokenized_text = []
-        tokenized_text1 = self.parse_sentence(full_text)
+        tokenized_text1 = self.parse_sentence(full_text) # TODO what is doc_length and why
 
-        tokenized_text = self.textToTokenize(full_text)
-        tokenized_retweet = self.textToTokenize(retweet_text)
-        tokenized_quote = self.textToTokenize(quote_text)
+        tokenized_text = self.text_to_tokenize(full_text)
+        tokenized_retweet = self.text_to_tokenize(retweet_text)
+        tokenized_quote = self.text_to_tokenize(quote_text)
+        tokenized_url = self.handle_url(url)
+        tokenized_retweet_url = self.handle_url(retweet_url)
+        tokenized_quote_text = self.handle_url(quote_url)
 
         doc_length = len(tokenized_text1)  # after text operations - length of full_text
 
         # our rules: numbers? emojis? spelling mistakes? bed.Today?
 
-        new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote
+        new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_text
 
         print(new_tokenized_text)
         print("----")
@@ -139,7 +145,6 @@ class Parse:
         self.documents.append(document)
         Document.update_doc_id()
         return document
-
     # def add_to_temp_dict(self, doc_as_list):
     #     document = self.parse_doc(doc_as_list)
     #     for word in document.term_doc_dictionary.keys():
@@ -148,7 +153,7 @@ class Parse:
     #             file = open(self.lowercase_dict[letter],"a")
     #             file.write()
 
-    def textToTokenize(self, text):
+    def text_to_tokenize(self, text):
         old_token = self.parse_sentence(text)
         doc_length = len(old_token)
         num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
@@ -166,6 +171,7 @@ class Parse:
             elif term is "#":
                 new_tokenized_text.extend(self.handle_hashtag(next_term))
             elif str.isdigit(term.replace(",", "")):  # if term is a number
+                # deal with decimal number like 10.1234567 -> 10.123
                 num = str(term.replace(",", ""))
                 if float(num) > 999:
                     num = self.numbers_over_1K(term)
