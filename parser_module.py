@@ -1,5 +1,6 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+import re
 from document import Document
 import string
 import os
@@ -63,6 +64,8 @@ class Parse:
 
     def handle_url(self, url_token:str):
         # url_token.replace("https", "")
+        if url_token is None:
+            return []
         url_token = url_token[8:]
         split_url = []
         space_or_char = ""
@@ -78,6 +81,16 @@ class Parse:
         split_url.append(space_or_char)
         # split_url.remove("/")
         return split_url
+
+    # our rule 1: remove emojis from tweets
+    def remove_emojis(self, txt):
+        re_emoji = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                           "]+", flags=re.UNICODE)
+        word = re_emoji.sub(r'', txt)
+        return word
 
     def parse_sentence(self, text):
         """
@@ -160,16 +173,22 @@ class Parse:
                     "percentage": "%"}
 
         new_tokenized_text = []
-
-        for i in range(doc_length):
+        i = -1
+        # for i in range(doc_length):
+        while i < doc_length-1:
+            # please note: when we do i += 2 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
+            # so we dont go over it twice
+            i += 1
             term = old_token[i]
             next_term = None
             if i + 1 < doc_length:
                 next_term = old_token[i + 1]
             if term is "@":
                 new_tokenized_text.append(self.handle_tags(next_term))
+                i += 2
             elif term is "#":
                 new_tokenized_text.extend(self.handle_hashtag(next_term))
+                i += 2
             elif str.isdigit(term.replace(",", "")):  # if term is a number
                 # deal with decimal number like 10.1234567 -> 10.123
                 num = str(term.replace(",", ""))
@@ -177,8 +196,11 @@ class Parse:
                     num = self.numbers_over_1K(term)
                 if next_term is not None and next_term.lower() in num_dict.keys():
                     new_tokenized_text.append(num + num_dict[next_term])
+                    i += 2
                 else:
                     new_tokenized_text.append(num)
+            elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
+                new_tokenized_text.append(self.remove_emojis(term))
             else:
                 new_tokenized_text.append(self.upper_or_lower(term))
         return new_tokenized_text

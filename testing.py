@@ -11,17 +11,24 @@ def main():
 
     # rf2 = ReadFile("C:\\Users\elitm\PycharmProjects\Search_Engine-maste")
     rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
-    list2D = rf2.read_file("sample2.parquet")
-    print(list2D)
+    list2D = rf2.read_file("sample3.parquet")
+    # print(list2D)
     # print(os.getcwd())
     parse1 = Parse()
     # hashtag function testing
     # print(parse.handle_hashtag("iLoveFood"))
     # print(parse.handle_hashtag("ILoveFood"))
     # print(parse.handle_hashtag("i_love_food"))
-    # for i in range (len(list2D)):
-    doc = parse1.parse_doc(list2D[10])
-    # print(doc.url)
+
+
+    # for i in range(len(list2D)):
+    #     doc = parse1.parse_doc(list2D[i])
+    #     print(doc.doc_id)
+
+    print(list2D[5])
+    print(parse1.parse_doc(list2D[5]))
+
+    # print("👇🏼😢😡😢😡😡😡😡👇")
 
     # print(doc.quote_text)
     # print("\n")
