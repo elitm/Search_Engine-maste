@@ -26,7 +26,9 @@ def main():
     #     print(doc.doc_id)
 
     print(list2D[5])
-    print(parse1.parse_doc(list2D[5]))
+    print(parse1.parse_doc(list2D[5])
+          )
+    print(parse1.parse_sentence("Germany. If Trump goes"))
 
     # print("👇🏼😢😡😢😡😡😡😡👇")
 
@@ -37,7 +39,6 @@ def main():
     # print(parse.simple_numbers_over_1K("10,123,000"))
     # x = int(float("1010.56"))
     # y = int(float("10,123".replace(",","")))
-
     # for lst in list2D:
     #     lst = [x if x is not None else '' for x in lst] # replace None with ''
     #     stringy = ''.join(lst)

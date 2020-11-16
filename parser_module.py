@@ -98,6 +98,7 @@ class Parse:
         :param text:
         :return:
         """
+        # remove stopwords
         with open('stop_words.txt', 'r') as f:
             lines = f.read().splitlines()
         text_tokens = word_tokenize(text)
@@ -107,9 +108,50 @@ class Parse:
             if w.lower() not in lines:
                 text_tokens_without_stopwords.append(w)
 
-        # text_tokens_without_stopwords = [w for w in text_tokens if w not in f.read()]
-        # print(text_tokens_without_stopwords)
-        return text_tokens_without_stopwords
+
+        # parsing
+        doc_length = len(text_tokens_without_stopwords)
+        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
+                    "percentage": "%"}
+
+        new_tokenized_text = []
+        i = -1
+        # for i in range(doc_length):
+        while i < doc_length-1:
+            # please note: when we do i += 2 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
+            # so we dont go over it twice
+            i += 1
+            term = text_tokens_without_stopwords[i]
+            next_term = None
+            if i + 1 < doc_length:
+                next_term = text_tokens_without_stopwords[i + 1]
+            if term is "@":
+                new_tokenized_text.append(self.handle_tags(next_term))
+                i += 2
+            elif term is "#":
+                new_tokenized_text.extend(self.handle_hashtag(next_term))
+                i += 2
+            elif str.isdigit(term.replace(",", "")):  # if term is a number
+                # deal with decimal number like 10.1234567 -> 10.123
+                num = str(term.replace(",", ""))
+                if float(num) > 999:
+                    num = self.numbers_over_1K(term)
+                if next_term is not None and next_term.lower() in num_dict.keys():
+                    new_tokenized_text.append(num + num_dict[next_term])
+                    i += 2
+                else:
+                    new_tokenized_text.append(num)
+            elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
+                new_tokenized_text.append(self.remove_emojis(term))
+            else:
+                new_tokenized_text.append(self.upper_or_lower(term))
+
+
+        # TODO remove dots and commas....
+
+        return new_tokenized_text
+
+
 
     def parse_doc(self, doc_as_list):
         """
@@ -128,16 +170,14 @@ class Parse:
         term_dict = {}
 
         new_tokenized_text = []
-        tokenized_text1 = self.parse_sentence(full_text) # TODO what is doc_length and why
-
-        tokenized_text = self.text_to_tokenize(full_text)
-        tokenized_retweet = self.text_to_tokenize(retweet_text)
-        tokenized_quote = self.text_to_tokenize(quote_text)
+        tokenized_text = self.parse_sentence(full_text) # TODO what is doc_length and why
+        tokenized_retweet = self.parse_sentence(retweet_text)
+        tokenized_quote = self.parse_sentence(quote_text)
         tokenized_url = self.handle_url(url)
         tokenized_retweet_url = self.handle_url(retweet_url)
         tokenized_quote_text = self.handle_url(quote_url)
 
-        doc_length = len(tokenized_text1)  # after text operations - length of full_text
+        doc_length = len(tokenized_text)  # after text operations - length of full_text
 
         # our rules: numbers? emojis? spelling mistakes? bed.Today?
 
@@ -166,41 +206,3 @@ class Parse:
     #             file = open(self.lowercase_dict[letter],"a")
     #             file.write()
 
-    def text_to_tokenize(self, text):
-        old_token = self.parse_sentence(text)
-        doc_length = len(old_token)
-        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
-                    "percentage": "%"}
-
-        new_tokenized_text = []
-        i = -1
-        # for i in range(doc_length):
-        while i < doc_length-1:
-            # please note: when we do i += 2 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
-            # so we dont go over it twice
-            i += 1
-            term = old_token[i]
-            next_term = None
-            if i + 1 < doc_length:
-                next_term = old_token[i + 1]
-            if term is "@":
-                new_tokenized_text.append(self.handle_tags(next_term))
-                i += 2
-            elif term is "#":
-                new_tokenized_text.extend(self.handle_hashtag(next_term))
-                i += 2
-            elif str.isdigit(term.replace(",", "")):  # if term is a number
-                # deal with decimal number like 10.1234567 -> 10.123
-                num = str(term.replace(",", ""))
-                if float(num) > 999:
-                    num = self.numbers_over_1K(term)
-                if next_term is not None and next_term.lower() in num_dict.keys():
-                    new_tokenized_text.append(num + num_dict[next_term])
-                    i += 2
-                else:
-                    new_tokenized_text.append(num)
-            elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
-                new_tokenized_text.append(self.remove_emojis(term))
-            else:
-                new_tokenized_text.append(self.upper_or_lower(term))
-        return new_tokenized_text
