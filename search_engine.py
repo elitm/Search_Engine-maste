@@ -1,3 +1,5 @@
+import glob
+
 from reader import ReadFile
 from configuration import ConfigClass
 from parser_module import Parse
@@ -18,7 +20,12 @@ def run_engine():
     p = Parse()
     indexer = Indexer(config)
 
-    documents_list = r.read_file(file_name='sample3.parquet')
+
+    files = glob.glob(config.get__corpusPath() + '/**/*.parquet')
+
+# for file in files: # all corpus
+    documents_list = r.read_file("sample3.parquet")
+#     documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
     # Iterate over every document in the file
     for idx, document in enumerate(documents_list):
         # parse the document
@@ -26,13 +33,18 @@ def run_engine():
         number_of_documents += 1
         # index the document data
         indexer.add_new_doc(parsed_document)
+
+    print("finished parquet") # chunk
+    # add to posting files (to disk)
+    indexer.add_to_file()
+
     print('Finished parsing and indexing. Starting to export files')
 
     utils.save_obj(indexer.inverted_idx, "inverted_idx")
     print(indexer.inverted_idx)
     print("\n")
-    utils.save_obj(indexer.postingDict, "posting")
-    print(indexer.postingDict)
+    utils.save_obj(indexer.posting_dict, "posting")
+    print(indexer.posting_dict)
 
 def load_index():
     print('Load inverted index')

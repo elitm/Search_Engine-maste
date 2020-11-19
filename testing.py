@@ -7,7 +7,6 @@ import os
 def main():
     # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
     # rf.read_all_files_from_corpus()
-
     # rf2 = ReadFile("C:\\Users\elitm\PycharmProjects\Search_Engine-maste")
     rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
     list2D = rf2.read_file("sample3.parquet")
@@ -19,6 +18,9 @@ def main():
     # print(parse.handle_hashtag("iLoveFood"))
     # print(parse.handle_hashtag("ILoveFood"))
     # print(parse.handle_hashtag("i_love_food"))
+
+    # tuple_list = [(1,2),(3,4),(5,6)]
+    # print("stringy" + str(tuple_list))
 
 
     # for i in range(len(list2D)):

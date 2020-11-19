@@ -11,11 +11,6 @@ class Parse:
     def __init__(self):
         self.stop_words = stopwords.words('english')
 
-        # self.stop_words = set(stopwords.words("english"))
-        # add custom words
-        # self.stop_words.add('literally') # tell me how
-        # self.more_stop_words = ["twitter", "https", "www", "i"]
-
         self.temp_dict = {}  # key: word, value: list of document ids
 
         self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
@@ -42,6 +37,8 @@ class Parse:
         return result
 
     def handle_numbers(self, num_as_str):
+        if num_as_str is "³": # TODO FIX
+            return 3
         num = int(float(num_as_str.replace(",", "")))
         if num < 1000:
             return num_as_str
@@ -104,60 +101,68 @@ class Parse:
         # remove stopwords
         with open('stop_words.txt', 'r') as f:
             lines = f.read().splitlines()
+
+        if text is None:
+            return []
         text_tokens = word_tokenize(text)
         text_tokens_without_stopwords = []
         # text_lower_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
         for w in text_tokens:
             if w.lower() not in lines:
                 text_tokens_without_stopwords.append(w)
-        print(text_tokens)
+
         # parsing
         doc_length = len(text_tokens_without_stopwords)
         num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%", "$": "$", "%": "%",
                     "percentage": "%"}
+        try: #TODO remove
+            new_tokenized_text = []
+            i = -1
+            # for i in range(doc_length):
+            while i < doc_length-1:
+                # please note: when we do i += 1 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
+                # so we dont go over it twice
 
-        new_tokenized_text = []
-        i = -1
-        # for i in range(doc_length):
-        while i < doc_length-1:
-            # please note: when we do i += 1 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
-            # so we dont go over it twice
-            i += 1
-            term = text_tokens_without_stopwords[i]
-            next_term = None
-            if i + 1 < doc_length:
-                next_term = text_tokens_without_stopwords[i + 1]
-            if term is "@":
-                new_tokenized_text.append(self.handle_tags(next_term))
                 i += 1
-            elif term is "#":
-                new_tokenized_text.extend(self.handle_hashtag(next_term))
-                i += 1
-            elif term is "$" and next_term is not None and str.isdigit(next_term.replace(",", "")): # $100 thousand / $75 --> 100K$ / 75$
-                num = self.handle_numbers(next_term)
-                if i + 2 < doc_length and text_tokens_without_stopwords[i+2] in num_dict.keys():
-                    num = num + num_dict[text_tokens_without_stopwords[i+2]]
+                term = text_tokens_without_stopwords[i]
+                term = term.encode("ascii", "ignore").decode()  # remove emoji
+                next_term = None
+                if i + 1 < doc_length:
+                    next_term = text_tokens_without_stopwords[i + 1]
+                if term is "@" and next_term is not None:
+                    new_tokenized_text.append(self.handle_tags(next_term))
                     i += 1
-                new_tokenized_text.append(num + "$")
-                i += 1
-            elif str.isdigit(term.replace(",", "")):  # if term is a number
-                # deal with decimal number like 10.1234567 -> 10.123
-                num = self.handle_numbers(term)
-                if next_term is not None and next_term.lower() in num_dict.keys():
-                    new_tokenized_text.append(num + num_dict[next_term.lower()])
+                elif term is "#" and next_term is not None:
+                    new_tokenized_text.extend(self.handle_hashtag(next_term))
                     i += 1
+                elif term is "$" and next_term is not None and str.isdigit(next_term.replace(",", "")): # $100 thousand / $75 --> 100K$ / 75$
+                    num = self.handle_numbers(next_term)
+                    if i + 2 < doc_length and text_tokens_without_stopwords[i+2] in num_dict.keys():
+                        num = num + num_dict[text_tokens_without_stopwords[i+2]]
+                        i += 1
+                    new_tokenized_text.append(num + "$")
+                    i += 1
+                elif str.isdigit(term.replace(",", "")):  # if term is a number
+                    # deal with decimal number like 10.1234567 -> 10.123
+                    num = self.handle_numbers(term)
+                    if next_term is not None and next_term.lower() in num_dict.keys():
+                        new_tokenized_text.append(num + num_dict[next_term.lower()])
+                        i += 1
+                    else:
+                        new_tokenized_text.append(num)
+                elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
+                    emojis_removed = self.remove_emojis(term)
+                    if emojis_removed is not "":
+                        new_tokenized_text.append(emojis_removed)
                 else:
-                    new_tokenized_text.append(num)
-            elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
-                emojis_removed = self.remove_emojis(term)
-                if emojis_removed is not "":
-                    new_tokenized_text.append(emojis_removed)
-            else:
-                new_tokenized_text.append(self.upper_or_lower(term))
-                if next_term is not None and term[0].isupper() and next_term[0].isupper():
-                    new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term)) # names
+                    new_tokenized_text.append(self.upper_or_lower(term))
+                    if next_term is not None and term[0].isupper() and next_term[0].isupper():
+                        new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term)) # names
 
-        return new_tokenized_text
+            return new_tokenized_text
+        except:
+            return new_tokenized_text
+
 
 
 
@@ -177,8 +182,7 @@ class Parse:
         quote_url = doc_as_list[7]
         term_dict = {}
 
-        new_tokenized_text = []
-        tokenized_text = self.parse_sentence(full_text) # TODO what is doc_length and why
+        tokenized_text = self.parse_sentence(full_text)
         tokenized_retweet = self.parse_sentence(retweet_text)
         tokenized_quote = self.parse_sentence(quote_text)
         tokenized_url = self.handle_url(url)
@@ -190,9 +194,7 @@ class Parse:
         # our rules: numbers? emojis? spelling mistakes? bed.Today?
 
         new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_text
-
-        print(new_tokenized_text)
-        print("----")
+        # TODO remove empty strings (and or space?) in list ('')
 
         for term in new_tokenized_text:
             if term not in term_dict.keys():
@@ -205,7 +207,10 @@ class Parse:
 
         self.documents.append(document)
         Document.update_doc_id()
+
         return document
+
+
     # def add_to_temp_dict(self, doc_as_list):
     #     document = self.parse_doc(doc_as_list)
     #     for word in document.term_doc_dictionary.keys():
