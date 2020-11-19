@@ -41,17 +41,19 @@ class Parse:
 
         return result
 
-    def numbers_over_1K(self, num_as_str):
+    def handle_numbers(self, num_as_str):
+        num = int(float(num_as_str.replace(",", "")))
+        if num < 1000:
+            return num_as_str
         k = pow(10, 3)
         m = pow(10, 6)
         b = pow(10, 9)
-        num = int(float(num_as_str.replace(",", "")))
         if k <= num < m:
-            return str(int(num) / k) + "K"
+            return str(int(num / k)) + "K"
         if m <= num < b:
-            return str(int(num) / m) + "M"
+            return str(int(num / m)) + "M"
         if num >= b:
-            return str(int(num) / b) + "B"
+            return str(int(num / b)) + "B"
 
 
     def handle_tags(self, tag_string):
@@ -92,6 +94,7 @@ class Parse:
         word = re_emoji.sub(r'', txt)
         return word
 
+
     def parse_sentence(self, text):
         """
         This function tokenize, remove stop words and apply lower case for every word within the text
@@ -107,18 +110,17 @@ class Parse:
         for w in text_tokens:
             if w.lower() not in lines:
                 text_tokens_without_stopwords.append(w)
-
-
+        print(text_tokens)
         # parsing
         doc_length = len(text_tokens_without_stopwords)
-        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
+        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%", "$": "$", "%": "%",
                     "percentage": "%"}
 
         new_tokenized_text = []
         i = -1
         # for i in range(doc_length):
         while i < doc_length-1:
-            # please note: when we do i += 2 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
+            # please note: when we do i += 1 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
             # so we dont go over it twice
             i += 1
             term = text_tokens_without_stopwords[i]
@@ -127,27 +129,33 @@ class Parse:
                 next_term = text_tokens_without_stopwords[i + 1]
             if term is "@":
                 new_tokenized_text.append(self.handle_tags(next_term))
-                i += 2
+                i += 1
             elif term is "#":
                 new_tokenized_text.extend(self.handle_hashtag(next_term))
-                i += 2
+                i += 1
+            elif term is "$" and next_term is not None and str.isdigit(next_term.replace(",", "")): # $100 thousand / $75 --> 100K$ / 75$
+                num = self.handle_numbers(next_term)
+                if i + 2 < doc_length and text_tokens_without_stopwords[i+2] in num_dict.keys():
+                    num = num + num_dict[text_tokens_without_stopwords[i+2]]
+                    i += 1
+                new_tokenized_text.append(num + "$")
+                i += 1
             elif str.isdigit(term.replace(",", "")):  # if term is a number
                 # deal with decimal number like 10.1234567 -> 10.123
-                num = str(term.replace(",", ""))
-                if float(num) > 999:
-                    num = self.numbers_over_1K(term)
+                num = self.handle_numbers(term)
                 if next_term is not None and next_term.lower() in num_dict.keys():
-                    new_tokenized_text.append(num + num_dict[next_term])
-                    i += 2
+                    new_tokenized_text.append(num + num_dict[next_term.lower()])
+                    i += 1
                 else:
                     new_tokenized_text.append(num)
             elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
-                new_tokenized_text.append(self.remove_emojis(term))
+                emojis_removed = self.remove_emojis(term)
+                if emojis_removed is not "":
+                    new_tokenized_text.append(emojis_removed)
             else:
                 new_tokenized_text.append(self.upper_or_lower(term))
-
-
-        # TODO remove dots and commas....
+                if next_term is not None and term[0].isupper() and next_term[0].isupper():
+                    new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term)) # names
 
         return new_tokenized_text
 

@@ -1,4 +1,3 @@
-from nltk.corpus import stopwords
 
 from reader import ReadFile
 from parser_module import Parse
@@ -15,6 +14,7 @@ def main():
     # print(list2D)
     # print(os.getcwd())
     parse1 = Parse()
+
     # hashtag function testing
     # print(parse.handle_hashtag("iLoveFood"))
     # print(parse.handle_hashtag("ILoveFood"))
@@ -24,12 +24,10 @@ def main():
     # for i in range(len(list2D)):
     #     doc = parse1.parse_doc(list2D[i])
     #     print(doc.doc_id)
-
-    print(list2D[5])
-    print(parse1.parse_doc(list2D[5])
-          )
-    print(parse1.parse_sentence("Germany. If Trump goes"))
-
+    #
+    # print(list2D[0])
+    # print(parse1.parse_doc(list2D[0]))
+    # print(parse1.parse_sentence("100 thousand dollars"))
     # print("👇🏼😢😡😢😡😡😡😡👇")
 
     # print(doc.quote_text)
@@ -37,8 +35,7 @@ def main():
     # print(doc.full_text)
     # print(parse.numbers_over_1K("55,442"))
     # print(parse.simple_numbers_over_1K("10,123,000"))
-    # x = int(float("1010.56"))
-    # y = int(float("10,123".replace(",","")))
+
     # for lst in list2D:
     #     lst = [x if x is not None else '' for x in lst] # replace None with ''
     #     stringy = ''.join(lst)
