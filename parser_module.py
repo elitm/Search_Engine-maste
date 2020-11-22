@@ -13,15 +13,15 @@ class Parse:
 
         self.temp_dict = {}  # key: word, value: list of document ids
 
-        self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
-        for i in self.lowercase_dict.keys():
-            self.lowercase_dict[i] = os.getcwd() + "\\" + i + ".txt"
-
-        self.uppercase_dict = dict.fromkeys(string.ascii_uppercase, "")
-        for j in self.uppercase_dict.keys():
-            self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
-
-        self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
+        # self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
+        # for i in self.lowercase_dict.keys():
+        #     self.lowercase_dict[i] = os.getcwd() + "\\" + i + ".txt"
+        #
+        # self.uppercase_dict = dict.fromkeys(string.ascii_uppercase, "")
+        # for j in self.uppercase_dict.keys():
+        #     self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
+        #
+        # self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
 
         self.documents = []
 
@@ -37,8 +37,6 @@ class Parse:
         return result
 
     def handle_numbers(self, num_as_str):
-        if num_as_str is "³": # TODO FIX
-            return 3
         num = int(float(num_as_str.replace(",", "")))
         if num < 1000:
             return num_as_str
@@ -191,16 +189,16 @@ class Parse:
 
         doc_length = len(tokenized_text)  # after text operations - length of full_text
 
-        # our rules: numbers? emojis? spelling mistakes? bed.Today?
+        # our rules: dollars? emojis? bed.Today? sentences-like-this? #ILOsummit
 
         new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_text
-        # TODO remove empty strings (and or space?) in list ('')
 
         for term in new_tokenized_text:
-            if term not in term_dict.keys():
-                term_dict[term] = 1
-            else:
-                term_dict[term] += 1
+            if term is not "":
+                if term not in term_dict.keys():
+                    term_dict[term] = 1
+                else:
+                    term_dict[term] += 1
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)

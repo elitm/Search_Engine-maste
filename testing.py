@@ -2,7 +2,7 @@
 from reader import ReadFile
 from parser_module import Parse
 import os
-
+import string
 
 def main():
     # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
