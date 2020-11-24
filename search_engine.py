@@ -25,6 +25,7 @@ def run_engine():
     p = Parse()
     indexer = Indexer(config)
 
+    end_of_parquet = False
 
     # files = glob.glob(config.get__corpusPath() + '/**/*.parquet')
 
@@ -36,19 +37,14 @@ def run_engine():
         # parse the document
         parsed_document = p.parse_doc(document)
         number_of_documents += 1
-
+        if number_of_documents == len(documents_list)-1:
+            end_of_parquet = True
         # index the document data
-        indexer.add_new_doc(parsed_document)
+        indexer.add_new_doc(parsed_document, end_of_parquet)
 
-    print(number_of_documents)
+
     end = timeit.default_timer()
-    print("finished parquet") # chunk
-
-    print((end-start)/60)
-
-
-    # add to posting files (to disk)
-    indexer.add_to_file()
+    print("finished indexing and parsing: " + str((end-start)/60))
 
     # print('Finished parsing and indexing. Starting to export files')
     # # utils.save_obj(indexer.inverted_idx, "inverted_idx")
@@ -59,9 +55,10 @@ def run_engine():
     #
     # print("\n\n\n")
     #
-    file =open("a.pkl", 'rb')
+    file = open("a.pkl", 'rb')
     a = pickle.load(file)
-    # print(a)
+    print("permanent file Z")
+    # print(z)
     print(len(a))
 
 def load_index():

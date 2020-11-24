@@ -10,21 +10,70 @@ class Indexer:
 
     def __init__(self, config):
 
+        self.DOCS_SIZE = 50000
+        self.docs_count = 0
+
         self.inverted_idx = {}
         self.posting_dict = {}
         self.config = config
 
+        self.a_dict = {}
+        self.b_dict = {}
+        self.c_dict = {}
+        self.d_dict = {}
+        self.e_dict = {}
+        self.f_dict = {}
+        self.g_dict = {}
+        self.h_dict = {}
+        self.i_dict = {}
+        self.j_dict = {}
+        self.k_dict = {}
+        self.l_dict = {}
+        self.m_dict = {}
+        self.n_dict = {}
+        self.o_dict = {}
+        self.p_dict = {}
+        self.q_dict = {}
+        self.r_dict = {}
+        self.s_dict = {}
+        self.t_dict = {}
+        self.u_dict = {}
+        self.v_dict = {}
+        self.w_dict = {}
+        self.x_dict = {}
+        self.y_dict = {}
+        self.z_dict = {}
+        self.hashtag_dict = {}
+        self.tag_dict = {}
+        self.numbers_dict = {}
+
+        self.ABC_dict = {'a': self.a_dict, 'b': self.b_dict,
+                         'c': self.c_dict, 'd': self.d_dict,
+                         'e': self.e_dict, 'f': self.f_dict,
+                         'g': self.g_dict, 'h': self.h_dict,
+                         'i': self.i_dict, 'j': self.j_dict,
+                         'k': self.k_dict, 'l': self.l_dict,
+                         'm': self.m_dict, 'n': self.n_dict,
+                         'o': self.o_dict, 'p': self.p_dict,
+                         'q': self.q_dict, 'r': self.r_dict,
+                         's': self.s_dict, 't': self.t_dict,
+                         'u': self.u_dict, 'v': self.v_dict,
+                         'w': self.w_dict, 'x': self.x_dict,
+                         'y': self.y_dict, 'z': self.z_dict,
+                         '1': self.numbers_dict, '#': self.hashtag_dict, '@': self.tag_dict }
+
         for lower_letter in string.ascii_lowercase + "@#1":
             f = open(lower_letter + ".pkl", 'wb')
-            pickle.dump([], f)
+            pickle.dump({}, f)
             f.close() # need this???
 
 
 
-    def add_new_doc(self, document):
+    def add_new_doc(self, document, end_of_parquet):
         """
         This function perform indexing process for a document object.
         Saved information is captures via two dictionaries ('inverted index' and 'posting')
+        :param end_of_parquet: bool if we reached end of parquet
         :param document: a document need to be indexed.
         :return: -
         """
@@ -53,10 +102,14 @@ class Indexer:
 
         document.max_tf = max_tf
         document.unique_terms = unique_terms_counter
+        self.docs_count += 1
+        if self.docs_count == self.DOCS_SIZE or end_of_parquet: # if we reach chunk size or end of parquet (so we add the remains)
+            self.add_to_file()
+            self.docs_count = 0
+
 
     def add_to_file(self):
 
-        obj_dict = {letter: [] for letter in string.ascii_lowercase + "@#1"}
         # for term in self.posting_dict:
         #     # if len(term) > 0: # why would term be empty
         #     # if not term[0].isalpha():
@@ -68,43 +121,36 @@ class Indexer:
         for term in self.posting_dict:
 
             if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#":
-                obj_dict[term[0].lower()].append([term, self.posting_dict[term]])
-            elif term[0].isdigit():
-                obj_dict["1"].append([term,self.posting_dict[term]])
+                self.ABC_dict[term[0].lower()][term] = self.posting_dict[term]
+
+            elif term[0].isdigit(): # numbers
+                self.ABC_dict["1"][term] = self.posting_dict[term]
             else: # garbage
                 continue
 
-        for letter in obj_dict:
-            utils.save_obj(obj_dict[letter], letter + "Temp")
-            # temp_file = open(letter + "Temp.pkl", 'wb')
-            # pickle.dump(obj_dict[letter], temp_file)
-            self.merge_files(letter, letter + "Temp")
-            # temp_file.close()
+        for letter in self.ABC_dict:
+            # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
+            self.merge_files(letter, self.ABC_dict[letter])
+            self.ABC_dict[letter] = {} # empty the dict for next chunk
 
 
-    def merge_files(self, permanent_file_name, temp_file_name):
+    def merge_files(self, permanent_file_name, temp_letter_dict):
 
         start = timeit.default_timer()
 
-        temp_file = utils.load_obj(temp_file_name)
-        permanent_file = utils.load_obj(permanent_file_name)
+        # temp_file = utils.load_obj(temp_file_name)
+        permanent_dict_file = utils.load_obj(permanent_file_name)
         exists = False
 
-        for temp_term_arr in temp_file:
-            for perm_term_arr in permanent_file:
-                if perm_term_arr[0] == temp_term_arr[0]: # term exists already so we just add all of the (tweet id, count)
-                    exists = True
-                    perm_term_arr[1] = self.merge(perm_term_arr[1], temp_term_arr[1])
-                    break
-            if not exists: # word doesnt exist so we add term and data
-                # i = self.find_idx(permanent_file, temp_term_arr[0])
-                permanent_file.append(temp_term_arr)
+        for key in temp_letter_dict:
+            if key in permanent_dict_file:
+                permanent_dict_file[key].extend(temp_letter_dict[key])
+            else:
+                permanent_dict_file[key] = temp_letter_dict[key]
 
-        for perm_term_arr in permanent_file: # adds df - data frequency (number of tweets the term is in) to array[2]
-            if len(perm_term_arr) == 2:
-                perm_term_arr.append(len(perm_term_arr[1]))
 
-        utils.save_obj(permanent_file, permanent_file_name)
+
+        utils.save_obj(permanent_dict_file, permanent_file_name)
 
         end = timeit.default_timer()
         print("merge done")
@@ -124,7 +170,9 @@ class Indexer:
         n1 = len(arr1)
         n2 = len(arr2)
         arr3 = [None] * (n1 + n2)
-        i,j,k = 0
+        i = 0
+        j = 0
+        k = 0
         # Traverse both array
         while i < n1 and j < n2:
 
