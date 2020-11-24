@@ -4,7 +4,6 @@ import re
 from document import Document
 
 
-
 class Parse:
 
     def __init__(self):
@@ -22,8 +21,6 @@ class Parse:
     #     self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
     #
     # self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
-
-
 
     def handle_hashtag(self, hashtag_str: str):
         glue = ' '
@@ -49,7 +46,6 @@ class Parse:
         if num >= b:
             return str(int(num / b)) + "B"
 
-
     def handle_tags(self, tag_string):
         return "@" + tag_string
 
@@ -58,7 +54,7 @@ class Parse:
             return str.upper(word_to_check)
         return word_to_check
 
-    def handle_url(self, url_token:str):
+    def handle_url(self, url_token: str):
         if url_token is None:
             return []
         url_token = url_token[8:]
@@ -82,13 +78,12 @@ class Parse:
     # our rule 1: remove emojis from tweets
     def remove_emojis(self, txt):
         re_emoji = re.compile("["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                           "]+", flags=re.UNICODE)
+                              u"\U0001F600-\U0001F64F"  # emoticons
+                              u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                              u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                              "]+", flags=re.UNICODE)
         word = re_emoji.sub(r'', txt)
         return word
-
 
     def parse_sentence(self, text):
         """
@@ -110,13 +105,14 @@ class Parse:
 
         # parsing
         doc_length = len(text_tokens_without_stopwords)
-        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%", "$": "$", "%": "%",
+        num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
+                    "$": "$", "%": "%",
                     "percentage": "%"}
         # try: #TODO remove
         new_tokenized_text = []
         i = -1
         # for i in range(doc_length):
-        while i < doc_length-1:
+        while i < doc_length - 1:
             # please note: when we do i += 1 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
             # so we dont go over it twice
 
@@ -139,37 +135,34 @@ class Parse:
             elif term is "#" and next_term is not None:
                 new_tokenized_text.extend(self.handle_hashtag(next_term))
                 i += 1
-            elif term is "$" and next_term is not None and str.isdigit(next_term.replace(",", "")): # $100 thousand / $75 --> 100K$ / 75$
+            elif term is "$" and next_term is not None and str.isdigit(
+                    next_term.replace(",", "")):  # $100 thousand / $75 --> 100K$ / 75$
                 num = self.handle_numbers(next_term)
-                if i + 2 < doc_length and text_tokens_without_stopwords[i+2] in num_dict.keys():
-                    num = num + num_dict[text_tokens_without_stopwords[i+2]]
+                if i + 2 < doc_length and text_tokens_without_stopwords[i + 2] in num_dict:
+                    num = num + num_dict[text_tokens_without_stopwords[i + 2]]
                     i += 1
                 new_tokenized_text.append(num + "$")
                 i += 1
             elif str.isdigit(term.replace(",", "")):  # if term is a number
                 # deal with decimal number like 10.1234567 -> 10.123
                 num = self.handle_numbers(term)
-                if next_term is not None and next_term.lower() in num_dict.keys():
+                if next_term is not None and next_term.lower() in num_dict:
                     new_tokenized_text.append(num + num_dict[next_term.lower()])
                     i += 1
                 else:
                     new_tokenized_text.append(num)
-            elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
+            elif not term.isidentifier():  # identifier: (a-z) and (0-9), or underscores (_)
                 emojis_removed = self.remove_emojis(term)
                 if emojis_removed is not "":
                     new_tokenized_text.append(emojis_removed)
             else:
                 new_tokenized_text.append(self.upper_or_lower(term))
                 if next_term is not None and term[0].isupper() and next_term[0].isupper():
-                    new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term)) # names
-
+                    new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term))  # names
 
         return new_tokenized_text
         # except:
         #     return new_tokenized_text
-
-
-
 
     def parse_doc(self, doc_as_list):
         """
@@ -186,12 +179,11 @@ class Parse:
         # quote_text = doc_as_list[6]
         # quote_url = doc_as_list[7]
 
-
         tweet_id = doc_as_list[0]
         tweet_date = doc_as_list[1]
         full_text = doc_as_list[2]
         url = doc_as_list[3]
-        indice = doc_as_list[4] # TODO why do we fking need indices
+        indice = doc_as_list[4]  # TODO why do we fking need indices
         retweet_text = doc_as_list[5]
         retweet_url = doc_as_list[6]
         retweet_indice = doc_as_list[7]
@@ -205,33 +197,32 @@ class Parse:
         term_dict = {}
 
         tokenized_text = self.parse_sentence(full_text)
-        tokenized_retweet = self.parse_sentence(retweet_text)
+        # tokenized_retweet = self.parse_sentence(retweet_text)
         tokenized_quote = self.parse_sentence(quote_text)
         tokenized_url = self.handle_url(url)
-        tokenized_retweet_url = self.handle_url(retweet_url)
-        tokenized_quote_text = self.handle_url(quote_url)
-
-        tokenized_rt_quote_text = self.parse_sentence(retweet_quoted_text)
-        tokenized_rt_quoted_url = self.handle_url(retweet_quoted_url)
+        # tokenized_retweet_url = self.handle_url(retweet_url)
+        # tokenized_quote_url = self.handle_url(quote_url)
+        #
+        # tokenized_rt_quote_text = self.parse_sentence(retweet_quoted_text)
+        # tokenized_rt_quoted_url = self.handle_url(retweet_quoted_url)
 
         doc_length = len(tokenized_text)  # after text operations - length of full_text
 
         # our rules: dollars? emojis? bed.Today? sentences-like-this? #ILOsummit
 
-        new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_text +\
-            tokenized_rt_quote_text + tokenized_rt_quoted_url
+        # new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_url +\
+        #     tokenized_rt_quote_text + tokenized_rt_quoted_url
+        new_tokenized_text = tokenized_text + tokenized_url + tokenized_quote
 
         for term in new_tokenized_text:
             # print(term)
-            if term is not "": # or (term.isalpha() and len(term) == 1)
-                if term not in term_dict.keys():
+            if term is not "":  # or (term.isalpha() and len(term) == 1)
+                if term not in term_dict:
                     term_dict[term] = 1
                 else:
                     term_dict[term] += 1
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
-
-
 
         return document

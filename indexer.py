@@ -1,6 +1,8 @@
 import re
 import string
 import pickle
+import timeit
+
 import utils
 
 
@@ -12,7 +14,7 @@ class Indexer:
         self.posting_dict = {}
         self.config = config
 
-        for lower_letter in string.ascii_lowercase + "@":
+        for lower_letter in string.ascii_lowercase + "@#1":
             f = open(lower_letter + ".pkl", 'wb')
             pickle.dump([], f)
             f.close() # need this???
@@ -33,8 +35,6 @@ class Indexer:
         # Go over each term in the doc
         for term in document_dictionary:
             try:
-                if term == "ดุลnบาสเวิร์คช็อป":
-                    print("found chinese")
                 # Update inverted index and posting
                 if term not in self.inverted_idx:
                     self.inverted_idx[term] = 1
@@ -50,43 +50,46 @@ class Indexer:
             except:
 
                 print('problem with the following key {}'.format(term[0]))
+
         document.max_tf = max_tf
         document.unique_terms = unique_terms_counter
 
     def add_to_file(self):
 
+        obj_dict = {letter: [] for letter in string.ascii_lowercase + "@#1"}
         # for term in self.posting_dict:
-        #     if len(term) > 0:
-        #         print(term)
-        #         if not term[0].isalpha():
-        #             term = "@" + term
-        #         with open(term[0].lower() + "Temp.txt", 'a') as f: # temp file for merge
-        #             if not term[0].isalpha():
-        #                 term = term[1:]
-        #             f.write(term + ":" + str(self.posting_dict[term]) + "\n")
-        # for letter in (string.ascii_lowercase + "@"):
-        #     if os.path.isfile(letter + "Temp.txt"): # if file exists
-        #         self.merge_files(letter + ".txt", letter + "Temp.txt")
-        obj_dict = {letter: [] for letter in string.ascii_lowercase + "@"}
+        #     # if len(term) > 0: # why would term be empty
+        #     # if not term[0].isalpha():
+        #     if not re.match("^[a-zA-Z]", term):
+        #         obj_dict["@"].append([term, self.posting_dict[term]])
+        #     else:
+        #         obj_dict[term[0].lower()].append([term,self.posting_dict[term]])
+
         for term in self.posting_dict:
-            # if len(term) > 0: # why would term be empty
-            # if not term[0].isalpha():
-            if not re.match("^[a-zA-Z]", term):
-                obj_dict["@"].append([term, self.posting_dict[term]])
-            else:
-                obj_dict[term[0].lower()].append([term,self.posting_dict[term]])
+
+            if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#":
+                obj_dict[term[0].lower()].append([term, self.posting_dict[term]])
+            elif term[0].isdigit():
+                obj_dict["1"].append([term,self.posting_dict[term]])
+            else: # garbage
+                continue
 
         for letter in obj_dict:
             utils.save_obj(obj_dict[letter], letter + "Temp")
+            # temp_file = open(letter + "Temp.pkl", 'wb')
+            # pickle.dump(obj_dict[letter], temp_file)
             self.merge_files(letter, letter + "Temp")
-
+            # temp_file.close()
 
 
     def merge_files(self, permanent_file_name, temp_file_name):
 
+        start = timeit.default_timer()
+
         temp_file = utils.load_obj(temp_file_name)
         permanent_file = utils.load_obj(permanent_file_name)
         exists = False
+
         for temp_term_arr in temp_file:
             for perm_term_arr in permanent_file:
                 if perm_term_arr[0] == temp_term_arr[0]: # term exists already so we just add all of the (tweet id, count)
@@ -94,8 +97,8 @@ class Indexer:
                     perm_term_arr[1] = self.merge(perm_term_arr[1], temp_term_arr[1])
                     break
             if not exists: # word doesnt exist so we add term and data
-                i = self.find_idx(permanent_file, temp_term_arr[0])
-                permanent_file.insert(i, temp_term_arr)
+                # i = self.find_idx(permanent_file, temp_term_arr[0])
+                permanent_file.append(temp_term_arr)
 
         for perm_term_arr in permanent_file: # adds df - data frequency (number of tweets the term is in) to array[2]
             if len(perm_term_arr) == 2:
@@ -103,15 +106,18 @@ class Indexer:
 
         utils.save_obj(permanent_file, permanent_file_name)
 
+        end = timeit.default_timer()
+        print("merge done")
+        print(end - start)
 
-    def find_idx(self, arr, val):
-        # Searching for the position
-        i = 0
-        for i in range(len(arr)):
-            if arr[i][0].lower() > val.lower():
-                return i
-        return i+1
 
+    # def find_idx(self, arr, val):
+    #     # Searching for the position
+    #     i = 0
+    #     for i in range(len(arr)):
+    #         if arr[i][0].lower() > val.lower():
+    #             return i
+    #     return i+
 
 
     def merge(self, arr1, arr2):

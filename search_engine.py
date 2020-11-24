@@ -40,6 +40,7 @@ def run_engine():
         # index the document data
         indexer.add_new_doc(parsed_document)
 
+    print(number_of_documents)
     end = timeit.default_timer()
     print("finished parquet") # chunk
 
@@ -47,7 +48,7 @@ def run_engine():
 
 
     # add to posting files (to disk)
-    # indexer.add_to_file()
+    indexer.add_to_file()
 
     # print('Finished parsing and indexing. Starting to export files')
     # # utils.save_obj(indexer.inverted_idx, "inverted_idx")
@@ -58,10 +59,10 @@ def run_engine():
     #
     # print("\n\n\n")
     #
-    # file =open("a.pkl", 'rb')
-    # a = pickle.load(file)
+    file =open("a.pkl", 'rb')
+    a = pickle.load(file)
     # print(a)
-    # print(len(a))
+    print(len(a))
 
 def load_index():
     print('Load inverted index')
