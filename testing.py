@@ -3,6 +3,7 @@ from reader import ReadFile
 from parser_module import Parse
 import os
 import string
+import re
 
 def main():
     # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
@@ -13,6 +14,9 @@ def main():
     # print(list2D)
     # print(os.getcwd())
     parse1 = Parse()
+    chinese = "ดุลnบาสเวิร์คช็อป"
+    print(parse1.parse_sentence(chinese))
+    re.match("^[a-zA-Z]", "chinese")
 
     # hashtag function testing
     # print(parse.handle_hashtag("iLoveFood"))

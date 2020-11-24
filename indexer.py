@@ -1,3 +1,4 @@
+import re
 import string
 import pickle
 import utils
@@ -26,21 +27,31 @@ class Indexer:
         :return: -
         """
 
+        max_tf = 0
+        unique_terms_counter = 0
         document_dictionary = document.term_doc_dictionary
         # Go over each term in the doc
         for term in document_dictionary:
             try:
+                if term == "ดุลnบาสเวิร์คช็อป":
+                    print("found chinese")
                 # Update inverted index and posting
                 if term not in self.inverted_idx:
                     self.inverted_idx[term] = 1
                     self.posting_dict[term] = []
+                    unique_terms_counter += 1
                 else:
                     self.inverted_idx[term] += 1
+
+                max_tf = max(self.inverted_idx[term], max_tf)
 
                 self.posting_dict[term].append((document.tweet_id, document_dictionary[term])) # key: str , value: array of tuples
 
             except:
+
                 print('problem with the following key {}'.format(term[0]))
+        document.max_tf = max_tf
+        document.unique_terms = unique_terms_counter
 
     def add_to_file(self):
 
@@ -57,10 +68,10 @@ class Indexer:
         #     if os.path.isfile(letter + "Temp.txt"): # if file exists
         #         self.merge_files(letter + ".txt", letter + "Temp.txt")
         obj_dict = {letter: [] for letter in string.ascii_lowercase + "@"}
-
         for term in self.posting_dict:
             # if len(term) > 0: # why would term be empty
-            if not term[0].isalpha():
+            # if not term[0].isalpha():
+            if not re.match("^[a-zA-Z]", term):
                 obj_dict["@"].append([term, self.posting_dict[term]])
             else:
                 obj_dict[term[0].lower()].append([term,self.posting_dict[term]])
@@ -78,26 +89,28 @@ class Indexer:
         exists = False
         for temp_term_arr in temp_file:
             for perm_term_arr in permanent_file:
-                if perm_term_arr[0] == temp_term_arr[0]:
+                if perm_term_arr[0] == temp_term_arr[0]: # term exists already so we just add all of the (tweet id, count)
                     exists = True
-                    sorted_arr = self.merge(perm_term_arr[1], temp_term_arr[1])
-                    perm_term_arr[1] = sorted_arr
+                    perm_term_arr[1] = self.merge(perm_term_arr[1], temp_term_arr[1])
                     break
-            if not exists:
+            if not exists: # word doesnt exist so we add term and data
                 i = self.find_idx(permanent_file, temp_term_arr[0])
                 permanent_file.insert(i, temp_term_arr)
-                print(i)
 
+        for perm_term_arr in permanent_file: # adds df - data frequency (number of tweets the term is in) to array[2]
+            if len(perm_term_arr) == 2:
+                perm_term_arr.append(len(perm_term_arr[1]))
+
+        utils.save_obj(permanent_file, permanent_file_name)
 
 
     def find_idx(self, arr, val):
         # Searching for the position
-        index = 0
+        i = 0
         for i in range(len(arr)):
             if arr[i][0].lower() > val.lower():
-                index = i
-                break
-        return index
+                return i
+        return i+1
 
 
 

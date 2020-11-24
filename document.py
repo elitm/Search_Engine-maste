@@ -1,7 +1,7 @@
 
 class Document:
 
-    doc_id = 0
+    # doc_id = 0
 
     def __init__(self, tweet_id, tweet_date=None, full_text=None, url=None, retweet_text=None, retweet_url=None,
                  quote_text=None, quote_url=None, term_doc_dictionary=None, doc_length=0):
@@ -28,10 +28,12 @@ class Document:
         self.term_doc_dictionary = term_doc_dictionary
         self.doc_length = doc_length
 
+        self.max_tf = 0
+        self.unique_terms = 0
 
-    @staticmethod
-    def update_doc_id():
-        Document.doc_id += 1
+    # @staticmethod
+    # def update_doc_id():
+    #     Document.doc_id += 1
 
 
     def __str__(self) -> str:

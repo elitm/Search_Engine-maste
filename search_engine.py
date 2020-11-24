@@ -1,4 +1,6 @@
 import glob
+import pickle
+import timeit
 
 from reader import ReadFile
 from configuration import ConfigClass
@@ -15,36 +17,51 @@ def run_engine():
     """
     number_of_documents = 0
 
+    start = timeit.default_timer()
+
+
     config = ConfigClass()
     r = ReadFile(corpus_path=config.get__corpusPath())
     p = Parse()
     indexer = Indexer(config)
 
 
-    files = glob.glob(config.get__corpusPath() + '/**/*.parquet')
+    # files = glob.glob(config.get__corpusPath() + '/**/*.parquet')
 
 # for file in files: # all corpus
-    documents_list = r.read_file("sample3.parquet")
-#     documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
+#     documents_list = r.read_file("sample3.parquet")
+    documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
     # Iterate over every document in the file
     for idx, document in enumerate(documents_list):
         # parse the document
         parsed_document = p.parse_doc(document)
         number_of_documents += 1
+
         # index the document data
         indexer.add_new_doc(parsed_document)
 
+    end = timeit.default_timer()
     print("finished parquet") # chunk
+
+    print((end-start)/60)
+
+
     # add to posting files (to disk)
-    indexer.add_to_file()
+    # indexer.add_to_file()
 
-    print('Finished parsing and indexing. Starting to export files')
-
-    utils.save_obj(indexer.inverted_idx, "inverted_idx")
-    # print(indexer.inverted_idx)
-    print("\n")
-    utils.save_obj(indexer.posting_dict, "posting")
-    # print(indexer.posting_dict)
+    # print('Finished parsing and indexing. Starting to export files')
+    # # utils.save_obj(indexer.inverted_idx, "inverted_idx")
+    # # print(indexer.inverted_idx)
+    # print("\n")
+    # # utils.save_obj(indexer.posting_dict, "posting")
+    # # print(indexer.posting_dict)
+    #
+    # print("\n\n\n")
+    #
+    # file =open("a.pkl", 'rb')
+    # a = pickle.load(file)
+    # print(a)
+    # print(len(a))
 
 def load_index():
     print('Load inverted index')

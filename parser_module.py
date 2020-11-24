@@ -1,29 +1,28 @@
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import re
 from document import Document
-import string
-import os
+
 
 
 class Parse:
 
     def __init__(self):
-        self.stop_words = stopwords.words('english')
+        # self.stop_words = stopwords.words('english')
+        with open('stop_words.txt', 'r') as f:
+            self.our_stop_words = f.read().splitlines()
+        self.stop_words_dict = {key: None for key in self.our_stop_words}
 
-        self.temp_dict = {}  # key: word, value: list of document ids
+    # self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
+    # for i in self.lowercase_dict.keys():
+    #     self.lowercase_dict[i] = os.getcwd() + "\\" + i + ".txt"
+    #
+    # self.uppercase_dict = dict.fromkeys(string.ascii_uppercase, "")
+    # for j in self.uppercase_dict.keys():
+    #     self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
+    #
+    # self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
 
-        # self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
-        # for i in self.lowercase_dict.keys():
-        #     self.lowercase_dict[i] = os.getcwd() + "\\" + i + ".txt"
-        #
-        # self.uppercase_dict = dict.fromkeys(string.ascii_uppercase, "")
-        # for j in self.uppercase_dict.keys():
-        #     self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
-        #
-        # self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
-
-        self.documents = []
 
 
     def handle_hashtag(self, hashtag_str: str):
@@ -60,14 +59,15 @@ class Parse:
         return word_to_check
 
     def handle_url(self, url_token:str):
-        # url_token.replace("https", "")
         if url_token is None:
             return []
         url_token = url_token[8:]
+        url_token = url_token.encode("ascii", "ignore").decode()  # remove ascii
+
         split_url = []
         space_or_char = ""
 
-        delimiters = {"=", "?", "/", ":"}
+        delimiters = {"=", "?", "/", ":", "-"}
 
         for char in url_token:
             if char in delimiters and space_or_char != "":
@@ -96,70 +96,77 @@ class Parse:
         :param text:
         :return:
         """
-        # remove stopwords
-        with open('stop_words.txt', 'r') as f:
-            lines = f.read().splitlines()
 
         if text is None:
             return []
         text_tokens = word_tokenize(text)
         text_tokens_without_stopwords = []
         # text_lower_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
+
+        # remove stopwords
         for w in text_tokens:
-            if w.lower() not in lines:
+            if w.lower() not in self.stop_words_dict:
                 text_tokens_without_stopwords.append(w)
 
         # parsing
         doc_length = len(text_tokens_without_stopwords)
         num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%", "$": "$", "%": "%",
                     "percentage": "%"}
-        try: #TODO remove
-            new_tokenized_text = []
-            i = -1
-            # for i in range(doc_length):
-            while i < doc_length-1:
-                # please note: when we do i += 1 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
-                # so we dont go over it twice
+        # try: #TODO remove
+        new_tokenized_text = []
+        i = -1
+        # for i in range(doc_length):
+        while i < doc_length-1:
+            # please note: when we do i += 1 it is because next_term(old_token[i + 1]) is used already so we skip over it next iteration
+            # so we dont go over it twice
 
+            i += 1
+            term = text_tokens_without_stopwords[i]
+            # if term.__contains__("ดุ"):
+            #     print("ดุลบาสเวิร์คช็อป")
+            term = term.encode("ascii", "ignore").decode()  # remove ascii
+            # term = re.sub(r'[^\x00-\x7f]', r'', term)
+            next_term = None
+            if term.startswith("//t") or (term.isalpha() and len(term) == 1):
+                continue
+            if term.__contains__("-"):
+                new_tokenized_text.extend(term.split("-"))
+            if i + 1 < doc_length:
+                next_term = text_tokens_without_stopwords[i + 1]
+            if term is "@" and next_term is not None:
+                new_tokenized_text.append(self.handle_tags(next_term))
                 i += 1
-                term = text_tokens_without_stopwords[i]
-                term = term.encode("ascii", "ignore").decode()  # remove emoji
-                next_term = None
-                if i + 1 < doc_length:
-                    next_term = text_tokens_without_stopwords[i + 1]
-                if term is "@" and next_term is not None:
-                    new_tokenized_text.append(self.handle_tags(next_term))
+            elif term is "#" and next_term is not None:
+                new_tokenized_text.extend(self.handle_hashtag(next_term))
+                i += 1
+            elif term is "$" and next_term is not None and str.isdigit(next_term.replace(",", "")): # $100 thousand / $75 --> 100K$ / 75$
+                num = self.handle_numbers(next_term)
+                if i + 2 < doc_length and text_tokens_without_stopwords[i+2] in num_dict.keys():
+                    num = num + num_dict[text_tokens_without_stopwords[i+2]]
                     i += 1
-                elif term is "#" and next_term is not None:
-                    new_tokenized_text.extend(self.handle_hashtag(next_term))
+                new_tokenized_text.append(num + "$")
+                i += 1
+            elif str.isdigit(term.replace(",", "")):  # if term is a number
+                # deal with decimal number like 10.1234567 -> 10.123
+                num = self.handle_numbers(term)
+                if next_term is not None and next_term.lower() in num_dict.keys():
+                    new_tokenized_text.append(num + num_dict[next_term.lower()])
                     i += 1
-                elif term is "$" and next_term is not None and str.isdigit(next_term.replace(",", "")): # $100 thousand / $75 --> 100K$ / 75$
-                    num = self.handle_numbers(next_term)
-                    if i + 2 < doc_length and text_tokens_without_stopwords[i+2] in num_dict.keys():
-                        num = num + num_dict[text_tokens_without_stopwords[i+2]]
-                        i += 1
-                    new_tokenized_text.append(num + "$")
-                    i += 1
-                elif str.isdigit(term.replace(",", "")):  # if term is a number
-                    # deal with decimal number like 10.1234567 -> 10.123
-                    num = self.handle_numbers(term)
-                    if next_term is not None and next_term.lower() in num_dict.keys():
-                        new_tokenized_text.append(num + num_dict[next_term.lower()])
-                        i += 1
-                    else:
-                        new_tokenized_text.append(num)
-                elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
-                    emojis_removed = self.remove_emojis(term)
-                    if emojis_removed is not "":
-                        new_tokenized_text.append(emojis_removed)
                 else:
-                    new_tokenized_text.append(self.upper_or_lower(term))
-                    if next_term is not None and term[0].isupper() and next_term[0].isupper():
-                        new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term)) # names
+                    new_tokenized_text.append(num)
+            elif not term.isidentifier(): # identifier: (a-z) and (0-9), or underscores (_)
+                emojis_removed = self.remove_emojis(term)
+                if emojis_removed is not "":
+                    new_tokenized_text.append(emojis_removed)
+            else:
+                new_tokenized_text.append(self.upper_or_lower(term))
+                if next_term is not None and term[0].isupper() and next_term[0].isupper():
+                    new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term)) # names
 
-            return new_tokenized_text
-        except:
-            return new_tokenized_text
+
+        return new_tokenized_text
+        # except:
+        #     return new_tokenized_text
 
 
 
@@ -170,14 +177,31 @@ class Parse:
         :param doc_as_list: list re-preseting the tweet.
         :return: Document object with corresponding fields.
         """
+        # tweet_id = doc_as_list[0]
+        # tweet_date = doc_as_list[1]
+        # full_text = doc_as_list[2]
+        # url = doc_as_list[3]
+        # retweet_text = doc_as_list[4]
+        # retweet_url = doc_as_list[5]
+        # quote_text = doc_as_list[6]
+        # quote_url = doc_as_list[7]
+
+
         tweet_id = doc_as_list[0]
         tweet_date = doc_as_list[1]
         full_text = doc_as_list[2]
         url = doc_as_list[3]
-        retweet_text = doc_as_list[4]
-        retweet_url = doc_as_list[5]
-        quote_text = doc_as_list[6]
-        quote_url = doc_as_list[7]
+        indice = doc_as_list[4] # TODO why do we fking need indices
+        retweet_text = doc_as_list[5]
+        retweet_url = doc_as_list[6]
+        retweet_indice = doc_as_list[7]
+        quote_text = doc_as_list[8]
+        quote_url = doc_as_list[9]
+        quoted_indice = doc_as_list[10]
+        retweet_quoted_text = doc_as_list[11]
+        retweet_quoted_url = doc_as_list[12]
+        retweet_quoted_indice = doc_as_list[13]
+
         term_dict = {}
 
         tokenized_text = self.parse_sentence(full_text)
@@ -187,14 +211,19 @@ class Parse:
         tokenized_retweet_url = self.handle_url(retweet_url)
         tokenized_quote_text = self.handle_url(quote_url)
 
+        tokenized_rt_quote_text = self.parse_sentence(retweet_quoted_text)
+        tokenized_rt_quoted_url = self.handle_url(retweet_quoted_url)
+
         doc_length = len(tokenized_text)  # after text operations - length of full_text
 
         # our rules: dollars? emojis? bed.Today? sentences-like-this? #ILOsummit
 
-        new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_text
+        new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_text +\
+            tokenized_rt_quote_text + tokenized_rt_quoted_url
 
         for term in new_tokenized_text:
-            if term is not "":
+            # print(term)
+            if term is not "": # or (term.isalpha() and len(term) == 1)
                 if term not in term_dict.keys():
                     term_dict[term] = 1
                 else:
@@ -203,17 +232,6 @@ class Parse:
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
 
-        self.documents.append(document)
-        Document.update_doc_id()
+
 
         return document
-
-
-    # def add_to_temp_dict(self, doc_as_list):
-    #     document = self.parse_doc(doc_as_list)
-    #     for word in document.term_doc_dictionary.keys():
-    #         letter = word[0]
-    #         if letter.isLower():
-    #             file = open(self.lowercase_dict[letter],"a")
-    #             file.write()
-
