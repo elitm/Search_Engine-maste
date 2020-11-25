@@ -1,6 +1,8 @@
 
+from indexer import Indexer
 from reader import ReadFile
 from parser_module import Parse
+from configuration import ConfigClass
 import os
 import string
 import re
@@ -9,15 +11,34 @@ def main():
     # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
     # rf.read_all_files_from_corpus()
     # rf2 = ReadFile("C:\\Users\elitm\PycharmProjects\Search_Engine-maste")
-    rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
-    list2D = rf2.read_file("sample3.parquet")
+    # # rf2 = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master")
+    # list2D = rf2.read_file("sample3.parquet")
     # print(list2D)
-    # print(os.getcwd())
-    parse1 = Parse()
-    chinese = "ดุลnบาสเวิร์คช็อป"
-    print(parse1.parse_sentence(chinese))
-    re.match("^[a-zA-Z]", "chinese")
+    # for_check=['1280966288916066308', 'Wed Jul 08 20:45:37 +0000 2020', 'RT @AAnimatorYellow: Nobody:\nBored (chinese))
+    # re.match("^[a-zA-Z]", "chinดุลnบาสเวิร์คช็อป animators during quarantine: https://t.co/uxOsknVIG1', '[]', '[]','Nobody:\nBored animators during quarantine: https://t.co/uxOsknVIG1', '[]','[]',"",'[]','[]',"",'[]','[]']
+    #     # # print(os.getcwd())
+    #     # parse1 = Parse()
+    #     # config = ConfigClass()
+    #     # indexer1 = Indexer(config)
+    #     # full_doc = parse1.parse_doc(for_check)
+    #     # indexer1.add_new_doc(full_doc)
+    #     # indexer1.add_to_file()
+    #     # print(FullDoc.term_doc_dictionary)
+    #     # print(indexer1.inverted_idx)
+    #     # print(indexer1.posting_dict)
+    #     # strat=time.time()
+    #     # for i in range(50000000):
+    #     #     x=5
+    #     # end=time.time()
+    #     # timey=(end-strat)/60
+    #     # print(timey)
+    #     # print(parse1.parse_sentence("I have 2³ strowberries"))
+    #     # chinese = "ดุลnบาสเวิร์คช็อป"
+    #     # print(parse1.parse_sentenceese")
 
+    # print({letter: [] for letter in string.ascii_lowercase + "@#1"})
+
+    print("@Hanna".lower())
     # hashtag function testing
     # print(parse.handle_hashtag("iLoveFood"))
     # print(parse.handle_hashtag("ILoveFood"))
@@ -34,7 +55,9 @@ def main():
     # print(list2D[0])
     # print(parse1.parse_doc(list2D[0]))
     # print(parse1.parse_sentence("100 thousand dollars"))
-    # print("👇🏼😢😡😢😡😡😡😡👇")
+
+    # print(type(⅕))
+    # print(A.encode('ascii', 'ignore'))
 
     # print(doc.quote_text)
     # print("\n")

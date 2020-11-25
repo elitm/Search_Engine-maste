@@ -46,20 +46,22 @@ def run_engine():
     end = timeit.default_timer()
     print("finished parsing and indexing: " + str((end-start)/60))
 
-    # print('Finished parsing and indexing. Starting to export files')
-    # # utils.save_obj(indexer.inverted_idx, "inverted_idx")
+    print('Finished parsing and indexing. Starting to export files')
+    utils.save_obj(indexer.inverted_idx, "inverted_idx")
+    inverted = utils.load_obj("inverted_idx")
+    p.remove_big_letters_word(inverted)
     # # print(indexer.inverted_idx)
     # print("\n")
     # # utils.save_obj(indexer.posting_dict, "posting")
     # # print(indexer.posting_dict)
     #
-    print("\n\n\n")
+    # print("\n\n\n")
 
-    file = open("z.pkl", 'rb')
-    z = pickle.load(file)
-    print("permanent file Z")
-    print(z)
-    file.close()
+    # file = open("z.pkl", 'rb')
+    # z = pickle.load(file)
+    # print("permanent file Z")
+    # print(z)
+    # file.close()
     # print(len(a))
 
 def load_index():
