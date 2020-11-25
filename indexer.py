@@ -87,14 +87,16 @@ class Indexer:
                 # Update inverted index and posting
                 if term not in self.inverted_idx:
                     self.inverted_idx[term] = 1
-                    self.posting_dict[term] = []
+                    # self.posting_dict[term] = []
                     unique_terms_counter += 1
                 else:
                     self.inverted_idx[term] += 1
-
-                max_tf = max(self.inverted_idx[term], max_tf)
+                if term not in self.posting_dict:
+                    self.posting_dict[term] = []
 
                 self.posting_dict[term].append((document.tweet_id, document_dictionary[term])) # key: str , value: array of tuples
+
+                max_tf = max(self.inverted_idx[term], max_tf)
 
             except:
 
@@ -106,6 +108,7 @@ class Indexer:
         if self.docs_count == self.DOCS_SIZE or end_of_parquet: # if we reach chunk size or end of parquet (so we add the remains)
             self.add_to_file()
             self.docs_count = 0
+            self.posting_dict = {}
 
 
     def add_to_file(self):

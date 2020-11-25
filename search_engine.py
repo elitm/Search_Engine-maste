@@ -1,4 +1,4 @@
-import glob
+# import glob
 import pickle
 import timeit
 
@@ -44,7 +44,7 @@ def run_engine():
 
 
     end = timeit.default_timer()
-    print("finished indexing and parsing: " + str((end-start)/60))
+    print("finished parsing and indexing: " + str((end-start)/60))
 
     # print('Finished parsing and indexing. Starting to export files')
     # # utils.save_obj(indexer.inverted_idx, "inverted_idx")
@@ -53,13 +53,14 @@ def run_engine():
     # # utils.save_obj(indexer.posting_dict, "posting")
     # # print(indexer.posting_dict)
     #
-    # print("\n\n\n")
-    #
-    file = open("a.pkl", 'rb')
-    a = pickle.load(file)
+    print("\n\n\n")
+
+    file = open("z.pkl", 'rb')
+    z = pickle.load(file)
     print("permanent file Z")
-    # print(z)
-    print(len(a))
+    print(z)
+    file.close()
+    # print(len(a))
 
 def load_index():
     print('Load inverted index')
