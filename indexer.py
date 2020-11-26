@@ -151,8 +151,6 @@ class Indexer:
             else:
                 permanent_dict_file[key] = temp_letter_dict[key]
 
-
-
         utils.save_obj(permanent_dict_file, permanent_file_name)
 
         end = timeit.default_timer()

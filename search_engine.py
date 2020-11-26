@@ -10,7 +10,7 @@ from searcher import Searcher
 import utils
 
 
-def run_engine():
+def run_engine(stem):
     """
 
     :return:
@@ -22,7 +22,7 @@ def run_engine():
 
     config = ConfigClass()
     r = ReadFile(corpus_path=config.get__corpusPath())
-    p = Parse()
+    p = Parse(stem)
     indexer = Indexer(config)
 
     end_of_parquet = False
@@ -48,6 +48,8 @@ def run_engine():
     inverted = utils.load_obj("inverted_idx")
     p.remove_big_letters_word(inverted)
 
+    print(inverted)
+
     end = timeit.default_timer()
     print("finished parsing and indexing: " + str((end-start)/60))
     # # print(indexer.inverted_idx)
@@ -57,11 +59,11 @@ def run_engine():
     #
     # print("\n\n\n")
 
-    # file = open("z.pkl", 'rb')
-    # z = pickle.load(file)
-    # print("permanent file Z")
-    # print(z)
-    # file.close()
+    file = open("b.pkl", 'rb')
+    b = pickle.load(file)
+    print("permanent file b")
+    print(b)
+    file.close()
     # print(len(a))
 
 def load_index():
@@ -80,7 +82,8 @@ def search_and_rank_query(query, inverted_index, k):
 
 
 def main():
-    run_engine()
+    stem = input("Would you like to use stemming?") #boolean value. use atemming or not
+    run_engine(stem)
     query = input("Please enter a query: ")
     k = int(input("Please enter number of docs to retrieve: "))
     inverted_index = load_index()

@@ -5,12 +5,14 @@ import re
 
 import utils
 from document import Document
+from stemmer import Stemmer
 
 
 class Parse:
 
-    def __init__(self):
+    def __init__(self, stem):
         # self.stop_words = stopwords.words('english')
+        self.stemming = stem
         with open('stop_words.txt', 'r') as f:
             self.our_stop_words = f.read().splitlines()
         self.stop_words_dict = {key: None for key in self.our_stop_words}
@@ -220,6 +222,12 @@ class Parse:
         # new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_url +\
         #     tokenized_rt_quote_text + tokenized_rt_quoted_url
         new_tokenized_text = tokenized_text + tokenized_url + tokenized_quote
+
+        if self.stemming:
+            s = Stemmer()
+            for token in new_tokenized_text:
+                new_tokenized_text.append(s.stem_term(token))
+                new_tokenized_text.remove(token)
 
         for term in new_tokenized_text:
             # print(term)
