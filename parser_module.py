@@ -14,7 +14,9 @@ class Parse:
         with open('stop_words.txt', 'r') as f:
             self.our_stop_words = f.read().splitlines()
         self.stop_words_dict = {key: None for key in self.our_stop_words}
-        self.uppercase_dict = dict.fromkeys(string.ascii_uppercase, [])
+        self.uppercase_dict = dict.fromkeys(string.ascii_uppercase)
+        for key in self.uppercase_dict:
+            self.uppercase_dict[key] = set()
 
     # self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
     # for i in self.lowercase_dict.keys():
@@ -54,10 +56,10 @@ class Parse:
         return "@" + tag_string
 
     def upper_or_lower(self, word_to_check):
-        if word_to_check[0].isupper():
-            self.uppercase_dict[word_to_check[0]].extend(word_to_check)
+         if word_to_check[0].isupper():
+            self.uppercase_dict[word_to_check[0]].add(word_to_check)
             return str.upper(word_to_check)
-        return word_to_check
+         return word_to_check
 
     def handle_url(self, url_token: str):
         if url_token is None:
@@ -234,17 +236,17 @@ class Parse:
 
     def remove_big_letters_word(self, inverted_idx):
         word_in_lower_and_upper = []
-        word_appearance = []
 
         for letter in self.uppercase_dict:
-            upper_to_lower_words = [x.lower for x in self.uppercase_dict[letter]] # check if word whom found in upper case also found in lower
+            upper_to_lower_words = [x.lower() for x in list(self.uppercase_dict[letter])] # check if word whom found in upper case also found in lower
             for word in upper_to_lower_words:
                 if word in inverted_idx:
                     word_in_lower_and_upper.append(word)
 
             letter_posting_file = utils.load_obj(letter)
             for word in word_in_lower_and_upper:
-                word_appearance = letter_posting_file[word.upper()]
-                letter_posting_file[word].extend(word_appearance)
-                del letter_posting_file[word.upper()]
+                if word.upper() in letter_posting_file:
+                    word_appearance = letter_posting_file[word.upper()]
+                    letter_posting_file[word].append(word_appearance)
+                    del letter_posting_file[word.upper()]
             utils.save_obj(letter_posting_file, letter)

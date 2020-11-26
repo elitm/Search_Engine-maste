@@ -43,13 +43,13 @@ def run_engine():
         indexer.add_new_doc(parsed_document, end_of_parquet)
 
 
-    end = timeit.default_timer()
-    print("finished parsing and indexing: " + str((end-start)/60))
-
     print('Finished parsing and indexing. Starting to export files')
     utils.save_obj(indexer.inverted_idx, "inverted_idx")
     inverted = utils.load_obj("inverted_idx")
     p.remove_big_letters_word(inverted)
+
+    end = timeit.default_timer()
+    print("finished parsing and indexing: " + str((end-start)/60))
     # # print(indexer.inverted_idx)
     # print("\n")
     # # utils.save_obj(indexer.posting_dict, "posting")
