@@ -18,7 +18,7 @@ def main():
     # for_check=['1280966288916066308', 'Wed Jul 08 20:45:37 +0000 2020', 'RT @AAnimatorYellow: Nobody:\nBored (chinese))
     for_check = ['chinดุลnบาสเวิร์คช็อป animators during quarantine: https://t.co/uxOsknVIG1', '[]', '[]','Nobody:\nBored animators during quarantine: https://t.co/uxOsknVIG1', '[]','[]',"",'[]','[]',"",'[]','[]']
     # print(os.getcwd())
-    parse1 = Parse()
+    parse1 = Parse(False)
     url = parse1.handle_url("https://github.com/chanabanana97/Search_Engine-maste/blob/master/parser_module.py")
     print(url)
     # config = ConfigClass()

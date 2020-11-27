@@ -10,7 +10,7 @@ class Indexer:
 
     def __init__(self, config):
 
-        self.DOCS_SIZE = 50000
+        self.DOCS_SIZE = 100000
         self.docs_count = 0
 
         self.inverted_idx = {}

@@ -63,25 +63,22 @@ class Parse:
             return str.upper(word_to_check)
          return word_to_check
 
+
     def handle_url(self, url_token: str):
         if url_token is None:
             return []
         url_token = url_token[8:]
-        url_token = url_token.encode("ascii", "ignore").decode()  # remove ascii
 
         split_url = []
         space_or_char = ""
 
-        delimiters = {"=", "?", "/", ":", "-"}
-
         for char in url_token:
-            if char in delimiters and space_or_char != "":
+            if char == "/" and space_or_char != "":
                 split_url.append(space_or_char)
                 space_or_char = ""
+                break
             else:
                 space_or_char += char
-        split_url.append(space_or_char)
-        # split_url.remove("/")
         return split_url
 
     # our rule 1: remove emojis from tweets
@@ -223,7 +220,7 @@ class Parse:
         #     tokenized_rt_quote_text + tokenized_rt_quoted_url
         new_tokenized_text = tokenized_text + tokenized_url + tokenized_quote
 
-        if self.stemming:
+        if self.stemming is True:
             s = Stemmer()
             for token in new_tokenized_text:
                 new_tokenized_text.append(s.stem_term(token))
