@@ -20,15 +20,7 @@ class Parse:
         for key in self.uppercase_dict:
             self.uppercase_dict[key] = set()
 
-    # self.lowercase_dict = dict.fromkeys(string.ascii_lowercase, "")
-    # for i in self.lowercase_dict.keys():
-    #     self.lowercase_dict[i] = os.getcwd() + "\\" + i + ".txt"
-    #
-    # self.uppercase_dict = dict.fromkeys(string.ascii_uppercase, "")
-    # for j in self.uppercase_dict.keys():
-    #     self.uppercase_dict[j] = os.getcwd() + "\\" + j + ".txt"
-    #
-    # self.other_chars = os.getcwd() + "\\" + "other_chars.txt"  # will hold file with text beginning in characters that are not letters (numbers, #, $...)
+        self.entities_dict = {k: [] for k in string.ascii_uppercase}
 
     def handle_hashtag(self, hashtag_str: str):
         glue = ' '
@@ -58,10 +50,10 @@ class Parse:
         return "@" + tag_string
 
     def upper_or_lower(self, word_to_check):
-         if word_to_check[0].isupper():
+        if word_to_check[0].isupper():
             self.uppercase_dict[word_to_check[0]].add(word_to_check)
             return str.upper(word_to_check)
-         return word_to_check
+        return word_to_check
 
 
     def handle_url(self, url_token: str):
@@ -114,7 +106,7 @@ class Parse:
         num_dict = {"thousand": "K", "million": "M", "billion": "B", "dollar": "$", "dollars": "$", "percent": "%",
                     "$": "$", "%": "%",
                     "percentage": "%"}
-        # try: #TODO remove
+
         new_tokenized_text = []
         i = -1
         # for i in range(doc_length):
@@ -124,12 +116,11 @@ class Parse:
 
             i += 1
             term = text_tokens_without_stopwords[i]
-            # if term.__contains__("ดุ"):
-            #     print("ดุลบาสเวิร์คช็อป")
+
             term = term.encode("ascii", "ignore").decode()  # remove ascii
             # term = re.sub(r'[^\x00-\x7f]', r'', term)
             next_term = None
-            if term.startswith("//t") or (term.isalpha() and len(term) == 1):
+            if term.startswith("//t") or (term.isalpha() and len(term) == 1): # remove short urls and terms that are single letters
                 continue
             if term.__contains__("-"):
                 new_tokenized_text.extend(term.split("-"))
@@ -164,11 +155,11 @@ class Parse:
             else:
                 new_tokenized_text.append(self.upper_or_lower(term))
                 if next_term is not None and term[0].isupper() and next_term[0].isupper():
-                    new_tokenized_text.append(str.upper(term) + " " + str.upper(next_term))  # names
+                    entity = str.upper(term) + " " + str.upper(next_term)
+                    new_tokenized_text.append(entity)  # names & entities
+                    self.entities_dict[term[0]].append(entity)
 
         return new_tokenized_text
-        # except:
-        #     return new_tokenized_text
 
     def parse_doc(self, doc_as_list):
         """
@@ -214,7 +205,6 @@ class Parse:
 
         doc_length = len(tokenized_text)  # after text operations - length of full_text
 
-        # our rules: dollars? emojis? bed.Today? sentences-like-this? #ILOsummit
 
         # new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_url +\
         #     tokenized_rt_quote_text + tokenized_rt_quoted_url
@@ -239,19 +229,27 @@ class Parse:
 
         return document
 
-    def remove_big_letters_word(self, inverted_idx):
+    def remove_uppercase_and_entities(self, inverted_idx: dict):
         word_in_lower_and_upper = []
 
+        # check if word whom found in upper case also found in lower. if yes - remove from posting files (and inverted index)
         for letter in self.uppercase_dict:
-            upper_to_lower_words = [x.lower() for x in list(self.uppercase_dict[letter])] # check if word whom found in upper case also found in lower
+            upper_to_lower_words = [x.lower() for x in list(self.uppercase_dict[letter])]
             for word in upper_to_lower_words:
                 if word in inverted_idx:
                     word_in_lower_and_upper.append(word)
 
             letter_posting_file = utils.load_obj(letter)
             for word in word_in_lower_and_upper:
-                if word.upper() in letter_posting_file:
+                if word.upper() in letter_posting_file: # TODO why do we need to check this - debug
                     word_appearance = letter_posting_file[word.upper()]
-                    letter_posting_file[word].append(word_appearance)
+                    letter_posting_file[word].extend(word_appearance)
                     del letter_posting_file[word.upper()]
+                    del inverted_idx[word.upper()]
+
+            # entities - check if they appear at least twice. if not - remove from posting files (and inverted index)
+            for entity in self.entities_dict[letter]:
+                if entity in letter_posting_file and len(letter_posting_file[entity]) < 2:
+                    del letter_posting_file[entity]
+                    del inverted_idx[entity]
             utils.save_obj(letter_posting_file, letter)

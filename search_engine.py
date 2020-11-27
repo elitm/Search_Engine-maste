@@ -1,5 +1,4 @@
 # import glob
-import glob
 import pickle
 import timeit
 
@@ -29,12 +28,11 @@ def run_engine(stem):
     end_of_parquet = False
 
     # files = glob.glob(config.get__corpusPath() + '/**/*.parquet')
-    #
-    # for file in files: # all corpus
+
+# for file in files: # all corpus
 #     documents_list = r.read_file("sample3.parquet")
     documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
-#     Iterate over every document in the file
-#         documents_list = r.read_file(file)
+    # Iterate over every document in the file
     for idx, document in enumerate(documents_list):
         # parse the document
         parsed_document = p.parse_doc(document)
@@ -45,12 +43,10 @@ def run_engine(stem):
         indexer.add_new_doc(parsed_document, end_of_parquet)
 
 
-    print('Finished parsing and indexing. Starting to export files')
-    inverted = utils.save_obj(indexer.inverted_idx, "inverted_idx")
-    inverted = utils.load_obj("inverted_idx")
-    p.remove_big_letters_word(inverted)
+    p.remove_uppercase_and_entities(indexer.inverted_idx)
+    indexer.sort_tweet_ids()
+    utils.save_obj(indexer.inverted_idx, "inverted_idx")
 
-    # print(inverted)
 
     end = timeit.default_timer()
     print("finished parsing and indexing: " + str((end-start)/60))
@@ -61,10 +57,10 @@ def run_engine(stem):
     #
     # print("\n\n\n")
 
-    # file = open("b.pkl", 'rb')
-    # b = pickle.load(file)
-    # print("permanent file b")
-    # print(b)
+    # file = open("z.pkl", 'rb')
+    # z = pickle.load(file)
+    # print("permanent file Z")
+    # print(z)
     # file.close()
     # print(len(a))
 
