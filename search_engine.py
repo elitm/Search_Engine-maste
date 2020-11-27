@@ -80,8 +80,11 @@ def search_and_rank_query(query, inverted_index, k):
 
 
 def main():
-    stem = input("Would you like to use stemming?") #boolean value. use atemming or not
-    run_engine(stem)
+    bool_stem = False
+    stem = input("Would you like to use stemming? Enter Y/N") # boolean value. use stemming or not
+    if stem == "Y":
+        bool_stem = True
+    run_engine(bool_stem)
     query = input("Please enter a query: ")
     k = int(input("Please enter number of docs to retrieve: "))
     inverted_index = load_index()
