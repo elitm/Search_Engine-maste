@@ -8,16 +8,21 @@ import utils
 
 class Indexer:
 
-    def __init__(self, config):
-
-        self.DOCS_SIZE = 300000
+    def __init__(self, config, stemming):
+        self.DOCS_SIZE = 200000
         self.docs_count = 0
 
         self.inverted_idx = {}
         self.posting_dict = {}
         self.config = config
 
-        self.a_dict = {} # key: term, val: array of tuples
+        if stemming is True:
+            self.out = self.config.saveFilesWithStem
+        else:
+            self.out = self.config.saveFilesWithoutStem
+        self.out += '\\'
+
+        self.a_dict = {}  # key: term, val: array of tuples
         self.b_dict = {}
         self.c_dict = {}
         self.d_dict = {}
@@ -65,9 +70,7 @@ class Indexer:
         for lower_letter in string.ascii_lowercase + "@#1":
             f = open(lower_letter + ".pkl", 'wb')
             pickle.dump({}, f)
-            f.close() # need this???
-
-
+            f.close()  # need this???
 
     def add_new_doc(self, document, end_of_parquet):
         """
@@ -94,7 +97,8 @@ class Indexer:
                 if term not in self.posting_dict:
                     self.posting_dict[term] = []
 
-                self.posting_dict[term].append((document.tweet_id, document_dictionary[term])) # key: str , value: array of tuples
+                self.posting_dict[term].append(
+                    (document.tweet_id, document_dictionary[term]))  # key: str , value: array of tuples
 
                 max_tf = max(self.inverted_idx[term], max_tf)
 
@@ -105,11 +109,10 @@ class Indexer:
         document.max_tf = max_tf
         document.unique_terms = unique_terms_counter
         self.docs_count += 1
-        if self.docs_count == self.DOCS_SIZE or end_of_parquet: # if we reach chunk size or end of parquet (so we add the remains)
+        if self.docs_count == self.DOCS_SIZE or end_of_parquet:  # if we reach chunk size or end of parquet (so we add the remains)
             self.add_to_file()
             self.docs_count = 0
             self.posting_dict = {}
-
 
     def add_to_file(self):
 
@@ -126,20 +129,19 @@ class Indexer:
             if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#":
                 self.ABC_dict[term[0].lower()][term] = self.posting_dict[term]
 
-            elif term[0].isdigit(): # numbers
+            elif term[0].isdigit():  # numbers
                 self.ABC_dict["1"][term] = self.posting_dict[term]
-            else: # garbage
+            else:  # garbage
                 continue
 
         for letter in self.ABC_dict:
             # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
-            self.merge_files(letter, self.ABC_dict[letter])
-            self.ABC_dict[letter] = {} # empty the dict for next chunk
-
+            self.merge_files(self.out + letter, self.ABC_dict[letter])
+            self.ABC_dict[letter] = {}  # empty the dict for next chunk
 
     def merge_files(self, permanent_file_name, temp_letter_dict):
 
-        start = timeit.default_timer()
+        # start = timeit.default_timer()
 
         # temp_file = utils.load_obj(temp_file_name)
         permanent_dict_file = utils.load_obj(permanent_file_name)
@@ -150,14 +152,11 @@ class Indexer:
             else:
                 permanent_dict_file[key] = temp_letter_dict[key]
 
-
-
         utils.save_obj(permanent_dict_file, permanent_file_name)
 
-        end = timeit.default_timer()
-        print("merge done")
-        print(end - start)
-
+        # end = timeit.default_timer()
+        # print("merge done")
+        # print(end - start)
 
     def sort_tweet_ids(self):
         s = timeit.default_timer()
@@ -165,12 +164,11 @@ class Indexer:
         for letter in self.ABC_dict:
             letter_dict = utils.load_obj(letter)
             for key in letter_dict:
-                letter_dict[key].sort(key=lambda tup: tup[0]) # TODO python sort vs. our own sort: check runtime
+                letter_dict[key].sort(key=lambda tup: tup[0])  # TODO python sort vs. our own sort: check runtime
             utils.save_obj(letter_dict, letter)
 
         e = timeit.default_timer()
-        print("sorting tweet ids:" + str(e-s) + " seconds")
-
+        print("sorting tweet ids:" + str(e - s) + " seconds")
 
     # def find_idx(self, arr, val):
     #     # Searching for the position
@@ -179,7 +177,6 @@ class Indexer:
     #         if arr[i][0].lower() > val.lower():
     #             return i
     #     return i+
-
 
     # def merge(self, arr1, arr2):
     #     n1 = len(arr1)
@@ -215,6 +212,3 @@ class Indexer:
     #         j = j + 1
     #
     #     return arr3
-
-
-

@@ -1,4 +1,4 @@
-# import glob
+import glob
 import pickle
 import timeit
 
@@ -10,7 +10,7 @@ from searcher import Searcher
 import utils
 
 
-def run_engine(stem):
+def run_engine(stemming):
     """
 
     :return:
@@ -22,25 +22,26 @@ def run_engine(stem):
 
     config = ConfigClass()
     r = ReadFile(corpus_path=config.get__corpusPath())
-    p = Parse(stem)
-    indexer = Indexer(config)
+    p = Parse(stemming)
+    indexer = Indexer(config, stemming)
 
     end_of_parquet = False
 
-    # files = glob.glob(config.get__corpusPath() + '/**/*.parquet')
+    files = list(glob.iglob(config.get__corpusPath() + '/**/*.parquet', recursive=True))
 
-# for file in files: # all corpus
-#     documents_list = r.read_file("sample3.parquet")
-    documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
-    # Iterate over every document in the file
-    for idx, document in enumerate(documents_list):
-        # parse the document
-        parsed_document = p.parse_doc(document)
-        number_of_documents += 1
-        if number_of_documents == len(documents_list)-1:
-            end_of_parquet = True
-        # index the document data
-        indexer.add_new_doc(parsed_document, end_of_parquet)
+    for file in files: # all corpus
+        documents_list = r.read_file(file)
+        # documents_list = r.read_file("sample3.parquet")
+        # documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
+        # Iterate over every document in the file
+        for idx, document in enumerate(documents_list):
+            # parse the document
+            parsed_document = p.parse_doc(document)
+            number_of_documents += 1
+            if number_of_documents == len(documents_list)-1:
+                end_of_parquet = True
+            # index the document data
+            indexer.add_new_doc(parsed_document, end_of_parquet)
 
 
     p.remove_uppercase_and_entities(indexer.inverted_idx)
@@ -79,12 +80,8 @@ def search_and_rank_query(query, inverted_index, k):
     return searcher.ranker.retrieve_top_k(ranked_docs, k)
 
 
-def main():
-    bool_stem = False
-    stem = input("Would you like to use stemming? Enter Y/N") # boolean value. use stemming or not
-    if stem == "Y":
-        bool_stem = True
-    run_engine(bool_stem)
+def main(corpus_path, output_path, stemming): #, queries, num_doc_to_retrieve):
+    run_engine(stemming)
     query = input("Please enter a query: ")
     k = int(input("Please enter number of docs to retrieve: "))
     inverted_index = load_index()

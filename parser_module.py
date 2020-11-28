@@ -60,17 +60,28 @@ class Parse:
         if url_token is None:
             return []
         url_token = url_token[8:]
-
+        url_token = url_token.encode("ascii", "ignore").decode()  # remove ascii
         split_url = []
         space_or_char = ""
-
+        delimiters = {"=", "?", "/", ":", "-"}
         for char in url_token:
-            if char == "/" and space_or_char != "":
-                split_url.append(space_or_char)
+            if (char in delimiters and space_or_char != "") or char.__eq__(url_token[-1]):
+                for x in space_or_char:
+                    if x.isdigit() or x.isupper() or x in delimiters:
+                        break
+                    else:
+                        split_url.append(space_or_char)
+                        break
                 space_or_char = ""
-                break
             else:
                 space_or_char += char
+        # for x in space_or_char:
+        #     if x.isdigit() or x.isupper() or x in delimiters:
+        #         break
+        #     else:
+        #         split_url.append(space_or_char)
+        #         break
+
         return split_url
 
     # our rule 1: remove emojis from tweets
@@ -82,6 +93,15 @@ class Parse:
                               "]+", flags=re.UNICODE)
         word = re_emoji.sub(r'', txt)
         return word
+
+    def handle_entity(self, txt):
+        entity =""
+        for word in txt:
+            if word[0].isupper():
+                entity += word + " "
+            else:
+                break
+        return entity
 
     def parse_sentence(self, text):
         """
@@ -155,7 +175,7 @@ class Parse:
             else:
                 new_tokenized_text.append(self.upper_or_lower(term))
                 if next_term is not None and term[0].isupper() and next_term[0].isupper():
-                    entity = str.upper(term) + " " + str.upper(next_term)
+                    entity = self.handle_entity(text_tokens_without_stopwords)
                     new_tokenized_text.append(entity)  # names & entities
                     self.entities_dict[term[0]].append(entity)
 
