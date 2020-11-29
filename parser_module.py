@@ -55,34 +55,45 @@ class Parse:
             return str.upper(word_to_check)
         return word_to_check
 
-
     def handle_url(self, url_token: str):
-        if url_token is None:
+        if url_token is None or url_token.startswith("//t"):
             return []
+        url_arr_to_return = []
         url_token = url_token[8:]
-        url_token = url_token.encode("ascii", "ignore").decode()  # remove ascii
-        split_url = []
-        space_or_char = ""
-        delimiters = {"=", "?", "/", ":", "-"}
-        for char in url_token:
-            if (char in delimiters and space_or_char != "") or char.__eq__(url_token[-1]):
-                for x in space_or_char:
-                    if x.isdigit() or x.isupper() or x in delimiters:
-                        break
-                    else:
-                        split_url.append(space_or_char)
-                        break
-                space_or_char = ""
-            else:
-                space_or_char += char
-        # for x in space_or_char:
-        #     if x.isdigit() or x.isupper() or x in delimiters:
-        #         break
-        #     else:
-        #         split_url.append(space_or_char)
-        #         break
+        url_arr = re.split('=|/|:|#|%|&', url_token)
+        for tok in url_arr[1:]:
+            if tok.__contains__('-'):
+                url_arr_to_return.extend(tok.split('-'))
+        url_arr_to_return.append(url_arr[0])
+        return url_arr_to_return
 
-        return split_url
+    # def handle_url(self, url_token: str):
+    #     if url_token is None:
+    #         return []
+    #     url_token = url_token[8:]
+    #     url_token = url_token.encode("ascii", "ignore").decode()  # remove ascii
+    #     split_url = []
+    #     space_or_char = ""
+    #     delimiters = {"=", "?", "/", ":", "-"}
+    #     for char in url_token:
+    #         if (char in delimiters and space_or_char != "") or char.__eq__(url_token[-1]):
+    #             for x in space_or_char:
+    #                 if x.isdigit() or x.isupper() or x in delimiters:
+    #                     break
+    #                 else:
+    #                     split_url.append(space_or_char)
+    #                     break
+    #             space_or_char = ""
+    #         else:
+    #             space_or_char += char
+    #     # for x in space_or_char:
+    #     #     if x.isdigit() or x.isupper() or x in delimiters:
+    #     #         break
+    #     #     else:
+    #     #         split_url.append(space_or_char)
+    #     #         break
+    #
+    #     return split_url
 
     # our rule 1: remove emojis from tweets
     def remove_emojis(self, txt):
@@ -249,8 +260,9 @@ class Parse:
 
         return document
 
-    def remove_uppercase_and_entities(self, inverted_idx: dict):
+    def remove_uppercase_and_entities(self, indexer):
         word_in_lower_and_upper = []
+        inverted_idx = indexer.inverted_idx
 
         # check if word whom found in upper case also found in lower. if yes - remove from posting files (and inverted index)
         for letter in self.uppercase_dict:
@@ -259,7 +271,7 @@ class Parse:
                 if word in inverted_idx:
                     word_in_lower_and_upper.append(word)
 
-            letter_posting_file = utils.load_obj(letter)
+            letter_posting_file = utils.load_obj(indexer.out + letter.lower())
             for word in word_in_lower_and_upper:
                 if word.upper() in letter_posting_file: # TODO why do we need to check this - debug
                     word_appearance = letter_posting_file[word.upper()]
@@ -272,4 +284,4 @@ class Parse:
                 if entity in letter_posting_file and len(letter_posting_file[entity]) < 2:
                     del letter_posting_file[entity]
                     del inverted_idx[entity]
-            utils.save_obj(letter_posting_file, letter)
+            utils.save_obj(letter_posting_file, indexer.out + letter.lower())

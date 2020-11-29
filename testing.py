@@ -23,14 +23,14 @@ def main():
     # url = parse1.handle_url("https://www.instagram.com/p/CD7fAPWs3WM/?igshid=09kf0ugp1l8x")
     # print(url)
 
-    parse1 = Parse(False)
+    # parse1 = Parse(False)
     # entity = "Dounald Trump Is The Loser no lucky for me"
     # parse1.handle_entity(entity)
-    for_check = ['1280966288916066308', 'Wed Jul 08 20:45:37 +0000 2020','Dounald Trump Is The Loser no lucky for me https://t.co/uxOsknVIG1', '[]', '[]',
-                 'Nobody:\nBored animators during quarantine: https://t.co/uxOsknVIG1', '[]', '[]', "", '[]', '[]', "",
-                 '[]', '[]']
-    doc = (parse1.parse_doc(for_check))
-    print(doc.term_doc_dictionary)
+    # for_check = ['1280966288916066308', 'Wed Jul 08 20:45:37 +0000 2020','Dounald Trump Is The Loser no lucky for me https://t.co/uxOsknVIG1', '[]', '[]',
+    #              'Nobody:\nBored animators during quarantine: https://t.co/uxOsknVIG1', '[]', '[]', "", '[]', '[]', "",
+    #              '[]', '[]']
+    # doc = (parse1.parse_doc(for_check))
+    # print(doc.term_doc_dictionary)
     # config = ConfigClass()
     # indexer1 = Indexer(config)
     # full_doc = parse1.parse_sentence(for_check)

@@ -9,11 +9,12 @@ import utils
 class Indexer:
 
     def __init__(self, config, stemming):
-        self.DOCS_SIZE = 200000
+        self.DOCS_SIZE = 400000
         self.docs_count = 0
 
         self.inverted_idx = {}
         self.posting_dict = {}
+        self.docs_dict ={}
         self.config = config
 
         if stemming is True:
@@ -68,9 +69,13 @@ class Indexer:
                          '1': self.numbers_dict, '#': self.hashtag_dict, '@': self.tag_dict}
 
         for lower_letter in string.ascii_lowercase + "@#1":
-            f = open(lower_letter + ".pkl", 'wb')
+            f = open(self.out + lower_letter + ".pkl", 'wb')
             pickle.dump({}, f)
             f.close()  # need this???
+
+        with open("documents.pkl", 'wb') as f:
+            pickle.dump({}, f)
+
 
     def add_new_doc(self, document, end_of_parquet):
         """
@@ -80,7 +85,7 @@ class Indexer:
         :param document: a document need to be indexed.
         :return: -
         """
-
+        self.docs_dict[document.tweet_id] = document
         max_tf = 0
         unique_terms_counter = 0
         document_dictionary = document.term_doc_dictionary
@@ -113,6 +118,10 @@ class Indexer:
             self.add_to_file()
             self.docs_count = 0
             self.posting_dict = {}
+            documents_dict = utils.load_obj("documents")
+            documents_dict.update(self.docs_dict)
+            utils.save_obj(documents_dict, "documents")
+            self.docs_dict = {}
 
     def add_to_file(self):
 
@@ -162,10 +171,10 @@ class Indexer:
         s = timeit.default_timer()
 
         for letter in self.ABC_dict:
-            letter_dict = utils.load_obj(letter)
+            letter_dict = utils.load_obj(self.out + letter)
             for key in letter_dict:
                 letter_dict[key].sort(key=lambda tup: tup[0])  # TODO python sort vs. our own sort: check runtime
-            utils.save_obj(letter_dict, letter)
+            utils.save_obj(letter_dict, self.out + letter)
 
         e = timeit.default_timer()
         print("sorting tweet ids:" + str(e - s) + " seconds")
