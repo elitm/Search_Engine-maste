@@ -1,4 +1,5 @@
 import glob
+import os
 import pickle
 import timeit
 
@@ -26,22 +27,28 @@ def run_engine(stemming):
     indexer = Indexer(config, stemming)
 
     end_of_parquet = False
+    files = []
+    for (dirpath, dirnames, filenames) in os.walk(config.corpusPath):
+        try:
+            filenames.remove(".DS_Store")
+        except:
+            pass
+        if len(filenames) > 0:
+            files.append(dirpath + "\\" + filenames[0])
 
     # files = list(glob.iglob(config.get__corpusPath() + '/**/*.parquet', recursive=True))
-
-    # for file in files: # all corpus
-    #     documents_list = r.read_file(file)
-    # documents_list = r.read_file("sample3.parquet")
-    documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
-    # Iterate over every document in the file
-    for idx, document in enumerate(documents_list):
-        # parse the document
-        parsed_document = p.parse_doc(document)
-        number_of_documents += 1
-        if number_of_documents == len(documents_list)-1:
-            end_of_parquet = True
-        # index the document data
-        indexer.add_new_doc(parsed_document, end_of_parquet)
+    for file in files: # all corpus
+        documents_list = r.read_file(file)
+        # documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
+        # Iterate over every document in the file
+        for idx, document in enumerate(documents_list):
+            # parse the document
+            parsed_document = p.parse_doc(document)
+            number_of_documents += 1
+            if number_of_documents == len(documents_list)-1:
+                end_of_parquet = True
+            # index the document data
+            indexer.add_new_doc(parsed_document, end_of_parquet)
 
 
     p.remove_uppercase_and_entities(indexer)
@@ -58,11 +65,11 @@ def run_engine(stemming):
     #
     # print("\n\n\n")
 
-    file = open(indexer.out + "x.pkl", 'rb')
-    x = pickle.load(file)
-    print("permanent file X")
-    print(x)
-    file.close()
+    # file = open("z.pkl", 'rb')
+    # z = pickle.load(file)
+    # print("permanent file Z")
+    # print(z)
+    # file.close()
     # print(len(a))
 
 def load_index():

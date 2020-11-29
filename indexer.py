@@ -9,12 +9,12 @@ import utils
 class Indexer:
 
     def __init__(self, config, stemming):
-        self.DOCS_SIZE = 400000
+        self.DOCS_SIZE = 200000
         self.docs_count = 0
+        self.docs_dict = {}
 
         self.inverted_idx = {}
         self.posting_dict = {}
-        self.docs_dict ={}
         self.config = config
 
         if stemming is True:
@@ -102,8 +102,7 @@ class Indexer:
                 if term not in self.posting_dict:
                     self.posting_dict[term] = []
 
-                self.posting_dict[term].append(
-                    (document.tweet_id, document_dictionary[term]))  # key: str , value: array of tuples
+                self.posting_dict[term].append((document.tweet_id, document_dictionary[term]))  # key: str , value: array of tuples
 
                 max_tf = max(self.inverted_idx[term], max_tf)
 
@@ -118,6 +117,7 @@ class Indexer:
             self.add_to_file()
             self.docs_count = 0
             self.posting_dict = {}
+
             documents_dict = utils.load_obj("documents")
             documents_dict.update(self.docs_dict)
             utils.save_obj(documents_dict, "documents")

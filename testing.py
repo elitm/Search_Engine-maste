@@ -6,7 +6,8 @@ from configuration import ConfigClass
 import os
 import string
 import re
-from scipy import spatial
+from searcher import Searcher
+import utils
 
 def main():
     # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
@@ -19,7 +20,7 @@ def main():
     for_check = ['chinดุลnบาสเวิร์คช็อป animators during quarantine: https://t.co/uxOsknVIG1', '[]', '[]','Nobody:\nBored animators during quarantine: https://t.co/uxOsknVIG1', '[]','[]',"",'[]','[]',"",'[]','[]']
     # print(os.getcwd())
 
-    # parse1 = Parse(False)
+    parse1 = Parse(False)
     # url = parse1.handle_url("https://www.instagram.com/p/CD7fAPWs3WM/?igshid=09kf0ugp1l8x")
     # print(url)
 
@@ -86,6 +87,13 @@ def main():
         # print(stringy)
     # print(stopwords.words('english'))
     # glove_file = open('glove.twitter.27B.200d.txt', encoding="utf8")
+
+
+    query = "I like big butts and I cannot Lie"
+    inverted = utils.load_obj("inverted_idx")
+    searcher = Searcher(inverted)
+    searcher.relevant_docs_from_posting(parse1.parse_sentence(query))
+    docs =
 
 
 if __name__ == "__main__":
