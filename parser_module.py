@@ -249,7 +249,6 @@ class Parse:
                 new_tokenized_text.remove(token)
 
         for term in new_tokenized_text:
-            # print(term)
             if term is not "":  # or (term.isalpha() and len(term) == 1)
                 if term not in term_dict:
                     term_dict[term] = 1
@@ -258,6 +257,9 @@ class Parse:
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
+
+        # document = Document(tweet_id, tweet_date, full_text, url, quote_text,
+        #                     term_dict, doc_length)
 
         return document
 

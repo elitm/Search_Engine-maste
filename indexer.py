@@ -95,7 +95,6 @@ class Indexer:
                 # Update inverted index and posting
                 if term not in self.inverted_idx:
                     self.inverted_idx[term] = 1
-                    # self.posting_dict[term] = []
                     unique_terms_counter += 1
                 else:
                     self.inverted_idx[term] += 1

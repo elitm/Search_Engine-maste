@@ -90,11 +90,14 @@ def main():
 
 
     query = "I like big butts and I cannot Lie"
+    query_parsed = parse1.parse_sentence(query)
     inverted = utils.load_obj("inverted_idx")
     searcher = Searcher(inverted)
-    searcher.relevant_docs_from_posting(parse1.parse_sentence(query))
-    docs =
-
+    relevant_docs = searcher.relevant_docs_from_posting(query_parsed)
+    # docs = utils.load_obj("documents")
+    print(relevant_docs)
+    # print(docs['1281010103487836160'])
+    print(searcher.cos_sim(query_parsed, '1281010103487836160'))
 
 if __name__ == "__main__":
     main()

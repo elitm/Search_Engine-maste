@@ -21,10 +21,10 @@ class Document:
         self.tweet_date = tweet_date
         self.full_text = full_text
         self.url = url
-        self.retweet_text = retweet_text
-        self.retweet_url = retweet_url
+        # self.retweet_text = retweet_text
+        # self.retweet_url = retweet_url
         self.quote_text = quote_text
-        self.quote_url = quote_url
+        # self.quote_url = quote_url
         self.term_doc_dictionary = term_doc_dictionary
         self.doc_length = doc_length
 
@@ -38,4 +38,4 @@ class Document:
 
     def __str__(self) -> str:
         return "tweet_id: " + self.tweet_id + "\ntweet_date: " + self.tweet_date + "\nfull_text: " + self.full_text
-        + "\nurl: " + self.url
+        + "\nurl: " + self.url + "\ndoc length: " + self.doc_length
