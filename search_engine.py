@@ -28,19 +28,21 @@ def run_engine(stemming):
 
     end_of_parquet = False
     files = []
-    for (dirpath, dirnames, filenames) in os.walk(config.corpusPath):
-        try:
-            filenames.remove(".DS_Store")
-        except:
-            pass
-        if len(filenames) > 0:
-            files.append(dirpath + "\\" + filenames[0])
+    # for (dirpath, dirnames, filenames) in os.walk(config.corpusPath):
+    #     try:
+    #         filenames.remove(".DS_Store")
+    #     except:
+    #         pass
+    #     if len(filenames) > 0:
+    #         files.append(dirpath + "\\" + filenames[0])
 
     # files = list(glob.iglob(config.get__corpusPath() + '/**/*.parquet', recursive=True))
-    for file in files: # all corpus
-        documents_list = r.read_file(file)
-        # documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
-        # Iterate over every document in the file
+    # for file in files: # all corpus
+    #     documents_list = r.read_file(file)
+    # documents_list = r.read_file(config.get__corpusPath())
+    # Iterate over every document in the file
+    for documents_list in r:
+        print("Parquet done")
         for idx, document in enumerate(documents_list):
             # parse the document
             parsed_document = p.parse_doc(document)

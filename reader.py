@@ -1,11 +1,25 @@
 import os
+import queue
+
 import pandas as pd
 import glob
 
 
 class ReadFile:
+
+    def __initQueue(self):
+        for (root, dirs, files) in os.walk(self.corpus_path, topdown=True):
+            for file in files:
+                try:
+                    if file[-8:] == ".parquet":
+                        self.queue.put(root + '/' + file)
+                except:
+                    continue
+
     def __init__(self, corpus_path):
         self.corpus_path = corpus_path
+        self.queue = queue.Queue()
+        self.__initQueue()
 
     def read_file(self, file_name):
         """
@@ -32,3 +46,12 @@ class ReadFile:
         files = glob.glob(self.corpus_path+'/**/*.parquet')
         for file in files:
             self.read_file(file)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.queue.empty():
+            raise StopIteration
+        file_path = self.queue.get()
+        return self.read_file(file_path)

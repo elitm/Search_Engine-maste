@@ -173,6 +173,7 @@ class Indexer:
             letter_dict = utils.load_obj(self.out + letter)
             for key in letter_dict:
                 letter_dict[key].sort(key=lambda tup: tup[0])  # TODO python sort vs. our own sort: check runtime
+                letter_dict[key].append(len(letter_dict[key]))
             utils.save_obj(letter_dict, self.out + letter)
 
         e = timeit.default_timer()
