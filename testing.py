@@ -1,7 +1,7 @@
-
 from indexer import Indexer
 from reader import ReadFile
 from parser_module import Parse
+import numpy as np
 from configuration import ConfigClass
 import os
 import string
@@ -90,12 +90,13 @@ def main():
     # glove_file = open('glove.twitter.27B.200d.txt', encoding="utf8")
 
 
-    query = "wear masks save lives"
+    query = "i like big butts and i cannot lie"
     query_parsed = parse1.parse_sentence(query)
     inverted = utils.load_obj("inverted_idx")
     searcher = Searcher(inverted)
-    relevant_docs = searcher.relevant_docs_from_posting(query_parsed)
-    # docs = utils.load_obj("documents")
+    # relevant_docs = searcher.relevant_docs_from_posting(query_parsed)
+    # print(len(relevant_docs))
+
     # print(relevant_docs)
     # print(docs['1281010103487836160'])
     # print(searcher.cos_sim(query_parsed, '1281010103487836160'))
@@ -104,6 +105,15 @@ def main():
     # for elem in doc_tup[:-1]:
     #     print(elem)
 
+    # a = np.array([100, 100, 6])
+    # b = np.array([4, 2, 100])
+    # my_list = [a, b]
+    # add = np.add.reduce(my_list)
+    # print(add/len(my_list))
+
+    relevant_docs, documents_dict = searcher.relevant_docs_from_posting(query_parsed)
+    ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs, documents_dict, query_parsed)
+    print(len(ranked_docs))
 
 
 if __name__ == "__main__":

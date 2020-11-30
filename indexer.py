@@ -75,20 +75,24 @@ class Indexer:
             f = open(self.out + lower_letter + ".pkl", 'wb')
             pickle.dump({}, f)
             f.close()  # need this???
+        self.docs_files = {}
 
-        with open("documents.pkl", 'wb') as f:
-            pickle.dump({}, f)
+        for i in range(10):
+            with open("document" + str(i) + ".pkl", 'wb') as f:
+                pickle.dump({}, f)
 
 
-    def add_new_doc(self, document, end_of_parquet):
+
+
+
+    def add_new_doc(self, document, end_of_corpus):
         """
         This function perform indexing process for a document object.
         Saved information is captures via two dictionaries ('inverted index' and 'posting')
-        :param end_of_parquet: bool if we reached end of parquet
+        :param end_of_corpus: bool if we reached end of corpus
         :param document: a document need to be indexed.
         :return: -
         """
-        self.docs_dict[document.tweet_id] = document
         max_tf = 0
         unique_terms_counter = 0
         document_dictionary = document.term_doc_dictionary
@@ -115,15 +119,21 @@ class Indexer:
         document.max_tf = max_tf
         document.unique_terms = unique_terms_counter
         self.docs_count += 1
-        if self.docs_count == self.DOCS_SIZE:  # if we reach chunk size
+
+        self.docs_dict[document.tweet_id] = [document.term_doc_dictionary, document.max_tf]
+
+
+        if self.docs_count == self.DOCS_SIZE or end_of_corpus:  # if we reach chunk size or end of corpus
             self.add_to_file()
             self.docs_count = 0
             self.posting_dict = {}
 
-            documents_dict = utils.load_obj("documents")
+            modulo = int(document.tweet_id) % 10
+            documents_dict = utils.load_obj("document" + str(modulo))
             documents_dict.update(self.docs_dict)
-            utils.save_obj(documents_dict, "documents")
+            utils.save_obj(documents_dict, "document" + str(modulo))
             self.docs_dict = {}
+
 
     def add_to_file(self):
 

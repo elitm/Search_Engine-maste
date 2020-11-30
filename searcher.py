@@ -1,7 +1,6 @@
 import math
 from ranker import Ranker
 import utils
-from collections import Counter
 
 class Searcher:
 
@@ -11,11 +10,16 @@ class Searcher:
         """
         self.ranker = Ranker()
         self.inverted_index = inverted_index
-        self.documents = utils.load_obj("documents")
         self.letters_files = {}
         self.query_terms_count = {}
         self.max_term_in_query = 0
         self.SIZE = 4000
+
+        self.documents = {}
+        self.total_num_of_docs = 0
+        for i in range(10):
+            self.documents[i] = utils.load_obj("document" + str(i))
+            self.total_num_of_docs += len(self.documents[i])
 
 
     def relevant_docs_from_posting(self, query: list):
@@ -55,48 +59,76 @@ class Searcher:
                 print('term {} not found in posting'.format(term))
 
         doc_weights = {}
-        for doc in relevant_docs:
-            doc_weights[doc] = self.cos_sim(query, doc)
+        # for doc in relevant_docs:
+        #     doc_weights[doc] = self.cos_sim(query, doc)
 
-        relevant_docs = sorted(doc_weights.items(), key=lambda x: x[1], reverse=True)
-        length = min(len(relevant_docs), self.SIZE)
-        return relevant_docs[:length]
+        relevant_docs_return = sorted(relevant_docs.items(), key=lambda x: x[1], reverse=True)
+        # length = min(len(relevant_docs_return), self.SIZE)
+
+        return relevant_docs_return[:4000], self.documents
 
 
-    def cos_sim(self, query, relevant_doc):
+    def cos_sim(self, query, relevant_doc_id):
 
         count_word_in_doc = 0
         mone = 0
-        wij_pow = 0
-        wiq_pow = 0
-
-        max_tf = self.documents[relevant_doc].max_tf
-        len_docs = len(self.documents)
+        count_word_in_query = 0
+        max_tf = 0
+        tf = 0
+        idf = 0
+        tf_idf_pow = 0
+        modulo = int(relevant_doc_id) % 10
         for word in query:
-            if word in self.documents[relevant_doc].term_doc_dictionary:
-                count_word_in_doc += self.documents[relevant_doc].term_doc_dictionary[word]
-            else:
-                continue
-            w1 = count_word_in_doc / max_tf
-            posting_dict = self.letters_files[word[0].lower()]
-            count_doc_for_word = posting_dict[word.lower()][-1]
+            if word in self.documents[modulo][relevant_doc_id][0]: # term_doc_dictionary -> word: num of times word is in doc
+                count_word_in_doc = self.documents[modulo][relevant_doc_id][0][word]
+                max_tf = self.documents[modulo][relevant_doc_id][1]
+                posting_dict = self.letters_files[word[0].lower()]
+                num_docs_with_word = posting_dict[word.lower()][-1]
 
-            w2 = math.log((len_docs/count_doc_for_word), 2)
-            w3 = self.query_terms_count[word]/self.max_term_in_query # *1 query
+                tf = count_word_in_doc/max_tf
+                idf = math.log(self.total_num_of_docs/num_docs_with_word, 2)
 
+                mone += tf*idf
+                tf_idf_pow += math.pow(tf*idf, 2)
 
-            mone += w1 * w2 * w3
-            wij_pow += math.pow(w1*w2, 2)
-            wiq_pow += math.pow(w3, 2)
-
-        mechane = math.sqrt(wij_pow*wiq_pow)
-        # if mechane == 0:
-        #     print(w1)
-        #     print(w2)
-        #     print(w3)
-
+        mechane = math.sqrt(tf_idf_pow)
 
         return mone/mechane
+
+
+
+        # count_word_in_doc = 0
+        # mone = 0
+        # wij_pow = 0
+        # wiq_pow = 0
+        #
+        # max_tf = self.documents[relevant_doc].max_tf
+        # len_docs = len(self.documents)
+        # for word in query:
+        #     if word in self.documents[relevant_doc].term_doc_dictionary:
+        #         count_word_in_doc += self.documents[relevant_doc].term_doc_dictionary[word]
+        #     else:
+        #         continue
+        #     w1 = count_word_in_doc / max_tf
+        #     posting_dict = self.letters_files[word[0].lower()]
+        #     count_doc_for_word = posting_dict[word.lower()][-1]
+        #
+        #     w2 = math.log((len_docs/count_doc_for_word), 2)
+        #     w3 = self.query_terms_count[word]/self.max_term_in_query # *1 query
+        #
+        #
+        #     mone += w1 * w2 * w3
+        #     wij_pow += math.pow(w1*w2, 2)
+        #     wiq_pow += math.pow(w3, 2)
+        #
+        # mechane = math.sqrt(wij_pow*wiq_pow)
+        # # if mechane == 0:
+        # #     print(w1)
+        # #     print(w2)
+        # #     print(w3)
+        #
+        #
+        # return mone/mechane
 
 
 
