@@ -8,6 +8,7 @@ import string
 import re
 from searcher import Searcher
 import utils
+from collections import Counter
 
 def main():
     # rf = ReadFile("C:\\Users\Chana\Documents\SearchEngine\Data") # corpus
@@ -89,15 +90,21 @@ def main():
     # glove_file = open('glove.twitter.27B.200d.txt', encoding="utf8")
 
 
-    query = "I like big butts and I cannot Lie"
+    query = "i like big butts and i cannot lie "
     query_parsed = parse1.parse_sentence(query)
     inverted = utils.load_obj("inverted_idx")
     searcher = Searcher(inverted)
     relevant_docs = searcher.relevant_docs_from_posting(query_parsed)
-    # docs = utils.load_obj("documents")
-    print(relevant_docs)
-    # print(docs['1281010103487836160'])
+    docs = utils.load_obj("documents")
+    # print(relevant_docs)
+    print(docs['1281010103487836160'])
     print(searcher.cos_sim(query_parsed, '1281010103487836160'))
+
+    # doc_tup = [(1,2),(2,2),(4,3),2]
+    # for elem in doc_tup[:-1]:
+    #     print(elem)
+
+
 
 if __name__ == "__main__":
     main()

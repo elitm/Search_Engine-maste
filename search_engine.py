@@ -39,19 +39,18 @@ def run_engine(stemming):
     # files = list(glob.iglob(config.get__corpusPath() + '/**/*.parquet', recursive=True))
     # for file in files: # all corpus
     #     documents_list = r.read_file(file)
-    # documents_list = r.read_file(config.get__corpusPath())
-    # Iterate over every document in the file
     for documents_list in r:
-        print("Parquet done")
+        # documents_list = r.read_file("date=07-08-2020/covid19_07-08.snappy.parquet")
+        # Iterate over every document in the file
         for idx, document in enumerate(documents_list):
             # parse the document
             parsed_document = p.parse_doc(document)
             number_of_documents += 1
-            if number_of_documents == len(documents_list)-1:
-                end_of_parquet = True
+            # if number_of_documents == len(documents_list)-1:
+            #     end_of_parquet = True
             # index the document data
             indexer.add_new_doc(parsed_document, end_of_parquet)
-
+        print("finished parquet")
 
     p.remove_uppercase_and_entities(indexer)
     indexer.sort_tweet_ids()

@@ -2,6 +2,7 @@ import re
 import string
 import pickle
 import timeit
+import threading
 
 import utils
 
@@ -12,7 +13,6 @@ class Indexer:
         self.DOCS_SIZE = 200000
         self.docs_count = 0
         self.docs_dict = {}
-
         self.inverted_idx = {}
         self.posting_dict = {}
         self.config = config
@@ -67,6 +67,9 @@ class Indexer:
                          'w': self.w_dict, 'x': self.x_dict,
                          'y': self.y_dict, 'z': self.z_dict,
                          '1': self.numbers_dict, '#': self.hashtag_dict, '@': self.tag_dict}
+        self.__garage_counter={}
+        for key in self.ABC_dict.keys():
+            self.__garage_counter[key]=0
 
         for lower_letter in string.ascii_lowercase + "@#1":
             f = open(self.out + lower_letter + ".pkl", 'wb')
@@ -112,7 +115,7 @@ class Indexer:
         document.max_tf = max_tf
         document.unique_terms = unique_terms_counter
         self.docs_count += 1
-        if self.docs_count == self.DOCS_SIZE or end_of_parquet:  # if we reach chunk size or end of parquet (so we add the remains)
+        if self.docs_count == self.DOCS_SIZE:  # if we reach chunk size
             self.add_to_file()
             self.docs_count = 0
             self.posting_dict = {}
@@ -136,21 +139,30 @@ class Indexer:
 
             if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#":
                 self.ABC_dict[term[0].lower()][term] = self.posting_dict[term]
+                self.__garage_counter[term[0].lower()]+=1
 
             elif term[0].isdigit():  # numbers
                 self.ABC_dict["1"][term] = self.posting_dict[term]
+                self.__garage_counter['1'] += 1
             else:  # garbage
                 continue
 
+        thread_list=[]
         for letter in self.ABC_dict:
             # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
-            self.merge_files(self.out + letter, self.ABC_dict[letter])
-            self.ABC_dict[letter] = {}  # empty the dict for next chunk
+            if self.__garage_counter[letter] > 10000:
+                thread_list.append(threading.Thread(target=self.merge_files, args=[self.out, letter, self.ABC_dict[letter]]))
 
-    def merge_files(self, permanent_file_name, temp_letter_dict):
+        for thread in thread_list:
+            thread.start()
+
+        for thread in thread_list:
+            thread.join()
+
+    def merge_files(self, out, letter, temp_letter_dict):
 
         # start = timeit.default_timer()
-
+        permanent_file_name=out + letter
         # temp_file = utils.load_obj(temp_file_name)
         permanent_dict_file = utils.load_obj(permanent_file_name)
 
@@ -161,11 +173,12 @@ class Indexer:
                 permanent_dict_file[key] = temp_letter_dict[key]
 
         utils.save_obj(permanent_dict_file, permanent_file_name)
+        self.ABC_dict[letter] = {}  # empty the dict for next chunk
+        self.__garage_counter[letter] = 0
 
         # end = timeit.default_timer()
         # print("merge done")
         # print(end - start)
-
     def sort_tweet_ids(self):
         s = timeit.default_timer()
 

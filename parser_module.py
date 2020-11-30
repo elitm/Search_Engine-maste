@@ -56,35 +56,8 @@ class Parse:
         return word_to_check
 
 
+
     def handle_url(self, url_token: str):
-        if url_token is None:
-            return []
-        url_token = url_token[8:]
-        url_token = url_token.encode("ascii", "ignore").decode()  # remove ascii
-        split_url = []
-        space_or_char = ""
-        delimiters = {"=", "?", "/", ":", "-"}
-        for char in url_token:
-            if (char in delimiters and space_or_char != "") or char.__eq__(url_token[-1]):
-                for x in space_or_char:
-                    if x.isdigit() or x.isupper() or x in delimiters:
-                        break
-                    else:
-                        split_url.append(space_or_char)
-                        break
-                space_or_char = ""
-            else:
-                space_or_char += char
-        # for x in space_or_char:
-        #     if x.isdigit() or x.isupper() or x in delimiters:
-        #         break
-        #     else:
-        #         split_url.append(space_or_char)
-        #         break
-
-        return split_url
-
-    def handle_url2(self, url_token: str):
         if url_token is None or url_token.startswith("//t"):
             return []
         url_arr_to_return = []
@@ -228,7 +201,7 @@ class Parse:
         tokenized_text = self.parse_sentence(full_text)
         # tokenized_retweet = self.parse_sentence(retweet_text)
         tokenized_quote = self.parse_sentence(quote_text)
-        tokenized_url = self.handle_url2(url)
+        tokenized_url = self.handle_url(url)
         # tokenized_retweet_url = self.handle_url(retweet_url)
         # tokenized_quote_url = self.handle_url(quote_url)
         #
