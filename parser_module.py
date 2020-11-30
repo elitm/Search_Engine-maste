@@ -249,7 +249,7 @@ class Parse:
 
             letter_posting_file = utils.load_obj(indexer.out + letter.lower())
             for word in word_in_lower_and_upper:
-                if word.upper() in letter_posting_file: # TODO why do we need to check this - debug
+                if word in letter_posting_file and word.upper() in letter_posting_file: # TODO why do we need to check this - debug
                     word_appearance = letter_posting_file[word.upper()]
                     letter_posting_file[word].extend(word_appearance)
                     del letter_posting_file[word.upper()]

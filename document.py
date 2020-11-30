@@ -28,7 +28,7 @@ class Document:
         self.term_doc_dictionary = term_doc_dictionary
         self.doc_length = doc_length
 
-        self.max_tf = 0
+        # self.max_tf = 0
         self.unique_terms = 0
 
     # @staticmethod

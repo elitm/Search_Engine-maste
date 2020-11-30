@@ -67,9 +67,9 @@ class Indexer:
                          'w': self.w_dict, 'x': self.x_dict,
                          'y': self.y_dict, 'z': self.z_dict,
                          '1': self.numbers_dict, '#': self.hashtag_dict, '@': self.tag_dict}
-        self.__garage_counter={}
-        for key in self.ABC_dict.keys():
-            self.__garage_counter[key]=0
+        self.letter_counter = {}
+        for key in self.ABC_dict:
+            self.letter_counter[key] = 0
 
         for lower_letter in string.ascii_lowercase + "@#1":
             f = open(self.out + lower_letter + ".pkl", 'wb')
@@ -106,7 +106,7 @@ class Indexer:
 
                 self.posting_dict[term].append((document.tweet_id, document_dictionary[term]))  # key: str , value: array of tuples
 
-                max_tf = max(self.inverted_idx[term], max_tf)
+                max_tf = max(document_dictionary[term], max_tf)
 
             except:
 
@@ -137,20 +137,20 @@ class Indexer:
 
         for term in self.posting_dict:
 
-            if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#":
+            if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#": #TODO remove re
                 self.ABC_dict[term[0].lower()][term] = self.posting_dict[term]
-                self.__garage_counter[term[0].lower()]+=1
+                self.letter_counter[term[0].lower()] += 1
 
             elif term[0].isdigit():  # numbers
                 self.ABC_dict["1"][term] = self.posting_dict[term]
-                self.__garage_counter['1'] += 1
+                self.letter_counter['1'] += 1
             else:  # garbage
                 continue
 
-        thread_list=[]
+        thread_list = []
         for letter in self.ABC_dict:
             # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
-            if self.__garage_counter[letter] > 10000:
+            if self.letter_counter[letter] > 10000:
                 thread_list.append(threading.Thread(target=self.merge_files, args=[self.out, letter, self.ABC_dict[letter]]))
 
         for thread in thread_list:
@@ -174,7 +174,7 @@ class Indexer:
 
         utils.save_obj(permanent_dict_file, permanent_file_name)
         self.ABC_dict[letter] = {}  # empty the dict for next chunk
-        self.__garage_counter[letter] = 0
+        self.letter_counter[letter] = 0
 
         # end = timeit.default_timer()
         # print("merge done")

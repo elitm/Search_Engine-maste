@@ -75,6 +75,8 @@ class Searcher:
         for word in query:
             if word in self.documents[relevant_doc].term_doc_dictionary:
                 count_word_in_doc += self.documents[relevant_doc].term_doc_dictionary[word]
+            else:
+                continue
             w1 = count_word_in_doc / max_tf
             posting_dict = self.letters_files[word[0].lower()]
             count_doc_for_word = posting_dict[word.lower()][-1]
