@@ -9,19 +9,15 @@ import utils
 
 class Indexer:
 
-    def __init__(self, config, stemming):
-        self.DOCS_SIZE = 350000
+    def __init__(self, config, out):
+        self.DOCS_SIZE = 400000
         self.docs_count = 0
         self.docs_dict = {}
         self.inverted_idx = {}
         self.posting_dict = {}
         self.config = config
+        self.out = out
 
-        if stemming is True:
-            self.out = self.config.saveFilesWithStem
-        else:
-            self.out = self.config.saveFilesWithoutStem
-        self.out += '\\'
 
         self.doc0 = {}
         self.doc1 = {}
@@ -33,9 +29,11 @@ class Indexer:
         self.doc7 = {}
         self.doc8 = {}
         self.doc9 = {}
-        self.documents = {0:self.doc0, 1:self.doc1, 2:self.doc2, 3:self.doc3,
-                          4:self.doc4, 5:self.doc5, 6:self.doc6, 7:self.doc7,
-                          8:self.doc8, 9:self.doc9}
+        self.documents = {0: self.doc0, 1: self.doc1, 2: self.doc2, 3: self.doc3,
+                          4: self.doc4, 5: self.doc5, 6: self.doc6, 7: self.doc7,
+                          8: self.doc8, 9: self.doc9}
+
+        self.counter_dict_files = {k: 0 for k in (string.ascii_lowercase + "@" + "1" + "#")}
 
         self.a_dict = {}  # key: term, val: array of tuples
         self.b_dict = {}
@@ -92,11 +90,8 @@ class Indexer:
         self.docs_files = {}
 
         for i in range(10):
-            with open("document" + str(i) + ".pkl", 'wb') as f:
+            with open(self.out + "document" + str(i) + ".pkl", 'wb') as f:
                 pickle.dump({}, f)
-
-
-
 
 
     def add_new_doc(self, document, end_of_corpus):
@@ -122,7 +117,8 @@ class Indexer:
                 if term not in self.posting_dict:
                     self.posting_dict[term] = []
 
-                self.posting_dict[term].append((document.tweet_id, document_dictionary[term]))  # key: str , value: array of tuples
+                self.posting_dict[term].append(
+                    (document.tweet_id, document_dictionary[term]))  # key: str , value: array of tuples
 
                 max_tf = max(document_dictionary[term], max_tf)
 
@@ -137,22 +133,20 @@ class Indexer:
         modulo = int(document.tweet_id) % 10
         self.documents[modulo][document.tweet_id] = [document.term_doc_dictionary, document.max_tf]
 
-
         if self.docs_count == self.DOCS_SIZE or end_of_corpus:  # if we reach chunk size or end of corpus
-            self.add_to_file()
+            self.add_to_file(end_of_corpus)
             self.docs_count = 0
             self.posting_dict = {}
 
             for i in self.documents: # 0 - 9
-                if self.documents[i].__len__() > 15000:
-                    doc = utils.load_obj("document" + str(i))
+                if self.documents[i].__len__() > 10000:
+                    doc = utils.load_obj(self.out + "document" + str(i))
                     doc.update(self.documents[i])
-                    utils.save_obj(doc, "document" + str(i))
+                    utils.save_obj(doc, self.out + "document" + str(i))
                     self.documents[i] = {}
 
 
-
-    def add_to_file(self):
+    def add_to_file(self, end_of_corpus):
 
         # for term in self.posting_dict:
         #     # if len(term) > 0: # why would term be empty
@@ -164,7 +158,7 @@ class Indexer:
 
         for term in self.posting_dict:
 
-            if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#": # TODO remove re
+            if "a" <= term[0] <= "z" or "A" <= term[0] <= "Z" or term[0] == "@" or term[0] == "#":  # TODO remove re
                 self.ABC_dict[term[0].lower()][term] = self.posting_dict[term]
                 self.letter_counter[term[0].lower()] += 1
 
@@ -175,10 +169,19 @@ class Indexer:
                 continue
 
         thread_list = []
+        # for letter in self.ABC_dict:
+        #     # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
+        #     if self.letter_counter[letter] > 15000 or end_of_corpus:
+        #         thread_list.append(
+        #             threading.Thread(target=self.merge_files, args=[self.out, letter, self.ABC_dict[letter]]))
+
         for letter in self.ABC_dict:
-            # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
-            if self.letter_counter[letter] > 15000:
-                thread_list.append(threading.Thread(target=self.merge_files, args=[self.out, letter, self.ABC_dict[letter]]))
+            if self.letter_counter[letter] > 10000 or end_of_corpus:
+                self.counter_dict_files[letter] += 1
+                chank_num = self.counter_dict_files[letter]
+                thread_list.append(threading.Thread(target=utils.save_obj(self.ABC_dict[letter], self.out + letter + str(chank_num)))) # ,args=[self.out + letter + self.chank_num, self.ABC_dict[letter]]))
+                self.ABC_dict[letter] = {}  # empty the dict for next chunk
+                self.letter_counter[letter] = 0
 
         for thread in thread_list:
             thread.start()
@@ -186,26 +189,30 @@ class Indexer:
         for thread in thread_list:
             thread.join()
 
-    def merge_files(self, out, letter, temp_letter_dict):
+    def merge_files(self, out, letter, file_name_letter_idx): #temp_letter_dict):
 
         # start = timeit.default_timer()
-        permanent_file_name=out + letter
-        # temp_file = utils.load_obj(temp_file_name)
+        permanent_file_name = out + letter
+        file_name_letter_idx = utils.load_obj(out + file_name_letter_idx)
         permanent_dict_file = utils.load_obj(permanent_file_name)
 
-        for key in temp_letter_dict:
+        # for key in temp_letter_dict:
+        #     if key in permanent_dict_file:
+        #         permanent_dict_file[key].extend(temp_letter_dict[key])
+        #     else:
+        #         permanent_dict_file[key] = temp_letter_dict[key]
+        #
+        # utils.save_obj(permanent_dict_file, permanent_file_name)
+        # self.ABC_dict[letter] = {}  # empty the dict for next chunk
+        # self.letter_counter[letter] = 0
+
+        for key in file_name_letter_idx:
             if key in permanent_dict_file:
-                permanent_dict_file[key].extend(temp_letter_dict[key])
+                permanent_dict_file[key].extend(file_name_letter_idx[key])
             else:
-                permanent_dict_file[key] = temp_letter_dict[key]
+                permanent_dict_file[key] = file_name_letter_idx[key]
 
         utils.save_obj(permanent_dict_file, permanent_file_name)
-        self.ABC_dict[letter] = {}  # empty the dict for next chunk
-        self.letter_counter[letter] = 0
-
-        # end = timeit.default_timer()
-        # print("merge done")
-        # print(end - start)
 
 
     def sort_tweet_ids(self):
@@ -220,46 +227,3 @@ class Indexer:
 
         e = timeit.default_timer()
         print("sorting tweet ids:" + str(e - s) + " seconds")
-
-    # def find_idx(self, arr, val):
-    #     # Searching for the position
-    #     i = 0
-    #     for i in range(len(arr)):
-    #         if arr[i][0].lower() > val.lower():
-    #             return i
-    #     return i+
-
-    # def merge(self, arr1, arr2):
-    #     n1 = len(arr1)
-    #     n2 = len(arr2)
-    #     arr3 = [None] * (n1 + n2)
-    #     i = 0
-    #     j = 0
-    #     k = 0
-    #     # Traverse both array
-    #     while i < n1 and j < n2:
-    #
-    #         if arr1[i] < arr2[j]:
-    #             arr3[k] = arr1[i]
-    #             k = k + 1
-    #             i = i + 1
-    #         else:
-    #             arr3[k] = arr2[j]
-    #             k = k + 1
-    #             j = j + 1
-    #
-    #     # Store remaining elements
-    #     # of first array
-    #     while i < n1:
-    #         arr3[k] = arr1[i];
-    #         k = k + 1
-    #         i = i + 1
-    #
-    #     # Store remaining elements
-    #     # of second array
-    #     while j < n2:
-    #         arr3[k] = arr2[j];
-    #         k = k + 1
-    #         j = j + 1
-    #
-    #     return arr3

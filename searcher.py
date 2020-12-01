@@ -1,9 +1,10 @@
+from configuration import ConfigClass
 from ranker import Ranker
 import utils
 
 class Searcher:
 
-    def __init__(self, inverted_index):
+    def __init__(self, inverted_index, config):
         """
         :param inverted_index: dictionary of inverted index
         """
@@ -11,15 +12,20 @@ class Searcher:
         self.inverted_index = inverted_index
         self.letters_files = {}
         self.query_terms_count = {}
-        self.max_term_in_query = 0
+        # self.max_term_in_query = 0
         self.SIZE = 4000
+
+        if config.toStem:
+            self.out = config.saveFilesWithStem
+        else:
+            self.out = config.saveFilesWithoutStem
+        self.out += '\\'
 
         self.documents = {}
         self.total_num_of_docs = 0
         for i in range(10):
-            self.documents[i] = utils.load_obj("document" + str(i))
+            self.documents[i] = utils.load_obj(self.out + "document" + str(i))
             self.total_num_of_docs += len(self.documents[i])
-
 
     def relevant_docs_from_posting(self, query: list):
         """
@@ -36,16 +42,13 @@ class Searcher:
                     self.query_terms_count[term] = 1
                 else:
                     self.query_terms_count[term] += 1
-
-        self.max_term_in_query = max(len(self.query_terms_count), max(self.query_terms_count.values()))
-
-
+        # self.max_term_in_query = max(len(self.query_terms_count), max(self.query_terms_count.values()))
 
         for letter in letters_in_query_set:
             if letter.isdigit():
-                self.letters_files['1'] = utils.load_obj("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master\output_files\WithoutStem\\" + "1")
+                self.letters_files['1'] = utils.load_obj(self.out + "1")
             else:
-                self.letters_files[letter] =utils.load_obj("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master\output_files\WithoutStem\\" + letter) # TODO fix - get self.out....
+                self.letters_files[letter] =utils.load_obj(self.out + letter)
 
         relevant_docs = {}
         for term in query:
@@ -67,9 +70,9 @@ class Searcher:
         #     doc_weights[doc] = self.cos_sim(query, doc)
 
         relevant_docs_return = sorted(relevant_docs.items(), key=lambda x: x[1], reverse=True)
-        # length = min(len(relevant_docs_return), self.SIZE)
+        length = min(len(relevant_docs_return), self.SIZE)
 
-        return relevant_docs_return[:4000], self.documents
+        return relevant_docs_return[:length], self.documents
 
 
     # def cos_sim(self, query, relevant_doc_id):
@@ -99,6 +102,8 @@ class Searcher:
     #
     #     return mone/mechane
 
+                # tf = count_word_in_doc/max_tf
+                # idf = math.log(self.total_num_of_docs/num_docs_with_word, 2)
 
 
         # count_word_in_doc = 0

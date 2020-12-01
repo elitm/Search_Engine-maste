@@ -1,8 +1,5 @@
-import heapq
 import numpy as np
 from numpy.linalg import norm
-
-
 class Ranker:
     def __init__(self):
         pass
@@ -49,10 +46,10 @@ class Ranker:
         docs_to_return = []
         for tweet_id in doc_value_dict:
             cos_sim = np.dot(doc_value_dict[tweet_id], query_vector) / (norm(doc_value_dict[tweet_id]) * norm(query_vector))
-            docs_to_return.append((cos_sim, tweet_id))
+            docs_to_return.append((tweet_id, cos_sim))
 
         # return sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
-        docs_to_return = sorted(docs_to_return, key=lambda element: element[0], reverse=True)
+        docs_to_return = sorted(docs_to_return, key=lambda element: element[1], reverse=True)
         return docs_to_return[:2000]
 
 

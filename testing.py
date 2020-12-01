@@ -1,5 +1,3 @@
-import timeit
-
 from indexer import Indexer
 from reader import ReadFile
 from parser_module import Parse
@@ -134,19 +132,19 @@ def main():
 
 
     # check the tweet that came back as relevant after tweet
-    d5 = utils.load_obj("document5")
-    d8 = utils.load_obj("document8")
-    d9 = utils.load_obj("document9")
-
-    print("relevant 1:")
-    print(d5['1291114301873414145']) #relevant 1
-    print("relevant 2:")
-    print(d8['1281073485431922688']) #relevant 2
-
-    print("ranked 1:")
-    print(d8['1284284916591730688']) #ranked 1
-    print("ranked 2:")
-    print(d9['1290899730969563139'])
+    # d5 = utils.load_obj("document5")
+    # d8 = utils.load_obj("document8")
+    # d9 = utils.load_obj("document9")
+    #
+    # print("relevant 1:")
+    # print(d5['1291114301873414145']) #relevant 1
+    # print("relevant 2:")
+    # print(d8['1281073485431922688']) #relevant 2
+    #
+    # print("ranked 1:")
+    # print(d8['1284284916591730688']) #ranked 1
+    # print("ranked 2:")
+    # print(d9['1290899730969563139'])
 
     # check the tweet that came back as relevant after tweet: "coronavirus eat bat soup"
     # d5 = utils.load_obj("document5")
@@ -158,7 +156,9 @@ def main():
     # print("ranked 2:")
     # print(d5['1284506827535704065'])
 
-
+    # tup = ("123", 1)
+    # tup = tup + (3,)
+    # print(tup)
 
 
 

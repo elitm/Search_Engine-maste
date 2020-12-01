@@ -160,7 +160,7 @@ class Parse:
             else:
                 new_tokenized_text.append(self.upper_or_lower(term))
                 if next_term is not None and term[0].isupper() and next_term[0].isupper():
-                    entity = self.handle_entity(text_tokens_without_stopwords)
+                    entity = term[0] + " " + term[1]
                     new_tokenized_text.append(entity)  # names & entities
                     self.entities_dict[term[0]].append(entity)
 

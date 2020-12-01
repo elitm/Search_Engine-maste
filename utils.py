@@ -1,3 +1,4 @@
+import csv
 import pickle
 
 
@@ -20,3 +21,16 @@ def load_obj(name):
     """
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)
+
+
+def load_inverted_index():
+    with open('inverted_idx.pkl', 'wb') as f:
+        return pickle.load(f)
+
+
+def print_to_csv(csv_path, data):
+    file = open(csv_path, 'w', newline='')
+    with file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+    file.close()
