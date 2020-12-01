@@ -10,7 +10,7 @@ import utils
 class Indexer:
 
     def __init__(self, config, stemming):
-        self.DOCS_SIZE = 200000
+        self.DOCS_SIZE = 350000
         self.docs_count = 0
         self.docs_dict = {}
         self.inverted_idx = {}
@@ -144,7 +144,7 @@ class Indexer:
             self.posting_dict = {}
 
             for i in self.documents: # 0 - 9
-                if self.documents[i].__len__() > 10000:
+                if self.documents[i].__len__() > 15000:
                     doc = utils.load_obj("document" + str(i))
                     doc.update(self.documents[i])
                     utils.save_obj(doc, "document" + str(i))
@@ -164,7 +164,7 @@ class Indexer:
 
         for term in self.posting_dict:
 
-            if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#": #TODO remove re
+            if re.match("^[a-zA-Z]", term) or term[0] == "@" or term[0] == "#": # TODO remove re
                 self.ABC_dict[term[0].lower()][term] = self.posting_dict[term]
                 self.letter_counter[term[0].lower()] += 1
 
@@ -177,7 +177,7 @@ class Indexer:
         thread_list = []
         for letter in self.ABC_dict:
             # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
-            if self.letter_counter[letter] > 10000:
+            if self.letter_counter[letter] > 15000:
                 thread_list.append(threading.Thread(target=self.merge_files, args=[self.out, letter, self.ABC_dict[letter]]))
 
         for thread in thread_list:

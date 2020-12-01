@@ -1,4 +1,3 @@
-import math
 from ranker import Ranker
 import utils
 
@@ -31,17 +30,22 @@ class Searcher:
         letters_in_query_set = set()
 
         for term in query:
-            letters_in_query_set.add(term[0].lower())
-            if term not in self.query_terms_count:
-                self.query_terms_count[term] = 1
-            else:
-                self.query_terms_count[term] += 1
+            if term in self.inverted_index: # check if term is in inverted index - if not, we dont need to add to set (which will ultimately load posting)
+                letters_in_query_set.add(term[0].lower())
+                if term not in self.query_terms_count:
+                    self.query_terms_count[term] = 1
+                else:
+                    self.query_terms_count[term] += 1
 
         self.max_term_in_query = max(len(self.query_terms_count), max(self.query_terms_count.values()))
 
-        # TODO add check if in inverted index - if not, we dont need to check posting bichlal
+
+
         for letter in letters_in_query_set:
-            self.letters_files[letter] = utils.load_obj("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master\output_files\WithoutStem\\" + letter) # TODO fix - get self.out....
+            if letter.isdigit():
+                self.letters_files['1'] = utils.load_obj("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master\output_files\WithoutStem\\" + "1")
+            else:
+                self.letters_files[letter] =utils.load_obj("C:\\Users\Chana\Documents\SearchEngine\Search_Engine-master\output_files\WithoutStem\\" + letter) # TODO fix - get self.out....
 
         relevant_docs = {}
         for term in query:
@@ -68,32 +72,32 @@ class Searcher:
         return relevant_docs_return[:4000], self.documents
 
 
-    def cos_sim(self, query, relevant_doc_id):
-
-        count_word_in_doc = 0
-        mone = 0
-        count_word_in_query = 0
-        max_tf = 0
-        tf = 0
-        idf = 0
-        tf_idf_pow = 0
-        modulo = int(relevant_doc_id) % 10
-        for word in query:
-            if word in self.documents[modulo][relevant_doc_id][0]: # term_doc_dictionary -> word: num of times word is in doc
-                count_word_in_doc = self.documents[modulo][relevant_doc_id][0][word]
-                max_tf = self.documents[modulo][relevant_doc_id][1]
-                posting_dict = self.letters_files[word[0].lower()]
-                num_docs_with_word = posting_dict[word.lower()][-1]
-
-                tf = count_word_in_doc/max_tf
-                idf = math.log(self.total_num_of_docs/num_docs_with_word, 2)
-
-                mone += tf*idf
-                tf_idf_pow += math.pow(tf*idf, 2)
-
-        mechane = math.sqrt(tf_idf_pow)
-
-        return mone/mechane
+    # def cos_sim(self, query, relevant_doc_id):
+    #
+    #     count_word_in_doc = 0
+    #     mone = 0
+    #     count_word_in_query = 0
+    #     max_tf = 0
+    #     tf = 0
+    #     idf = 0
+    #     tf_idf_pow = 0
+    #     modulo = int(relevant_doc_id) % 10
+    #     for word in query:
+    #         if word in self.documents[modulo][relevant_doc_id][0]: # term_doc_dictionary -> word: num of times word is in doc
+    #             count_word_in_doc = self.documents[modulo][relevant_doc_id][0][word]
+    #             max_tf = self.documents[modulo][relevant_doc_id][1]
+    #             posting_dict = self.letters_files[word[0].lower()]
+    #             num_docs_with_word = posting_dict[word.lower()][-1]
+    #
+    #             tf = count_word_in_doc/max_tf
+    #             idf = math.log(self.total_num_of_docs/num_docs_with_word, 2)
+    #
+    #             mone += tf*idf
+    #             tf_idf_pow += math.pow(tf*idf, 2)
+    #
+    #     mechane = math.sqrt(tf_idf_pow)
+    #
+    #     return mone/mechane
 
 
 

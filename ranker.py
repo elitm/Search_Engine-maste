@@ -52,21 +52,18 @@ class Ranker:
             docs_to_return.append((cos_sim, tweet_id))
 
         # return sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
-
-        return sorted(docs_to_return, key=lambda element: element[0], reverse=True)
+        docs_to_return = sorted(docs_to_return, key=lambda element: element[0], reverse=True)
+        return docs_to_return[:2000]
 
 
     @staticmethod
-    def retrieve_top_k(sorted_relevant_docs_heap, k=2000):
+    def retrieve_top_k(sorted_relevant_doc, k=1):
         """
         return a list of top K tweets based on their ranking from highest to lowest
-        :param sorted_relevant_docs_heap: heap of all candidates docs.
+        :param sorted_relevant_doc: array of all candidates docs.
         :param k: Number of top document to return
         :return: list of relevant document
         """
-        sorted_relevant_doc = []
-        for i in range(k):
-            sorted_relevant_doc.append(sorted_relevant_docs_heap.pop)
-
-        # return sorted_relevant_doc[:k]
-        return sorted_relevant_doc
+        if k > 2000:
+            k = 2000
+        return sorted_relevant_doc[:k]

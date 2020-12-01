@@ -1,13 +1,12 @@
 import os
 import queue
-
 import pandas as pd
 import glob
 
 
 class ReadFile:
 
-    def __initQueue(self):
+    def init_queue(self):
         for (root, dirs, files) in os.walk(self.corpus_path, topdown=True):
             for file in files:
                 try:
@@ -19,7 +18,7 @@ class ReadFile:
     def __init__(self, corpus_path):
         self.corpus_path = corpus_path
         self.queue = queue.Queue()
-        self.__initQueue()
+        self.init_queue()
 
     def read_file(self, file_name):
         """

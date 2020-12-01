@@ -26,7 +26,7 @@ def run_engine(stemming):
     p = Parse(stemming)
     indexer = Indexer(config, stemming)
 
-    end_of_parquet = False
+    end_of_corpus = False
     files = []
     # for (dirpath, dirnames, filenames) in os.walk(config.corpusPath):
     #     try:
@@ -46,10 +46,10 @@ def run_engine(stemming):
             # parse the document
             parsed_document = p.parse_doc(document)
             number_of_documents += 1
-            # if number_of_documents == len(documents_list)-1:
-            #     end_of_parquet = True
+            if r.queue.empty() and number_of_documents == len(documents_list)-1:
+                end_of_corpus = True
             # index the document data
-            indexer.add_new_doc(parsed_document, end_of_parquet)
+            indexer.add_new_doc(parsed_document, end_of_corpus)
         print("finished parquet")
 
     p.remove_uppercase_and_entities(indexer)
@@ -79,8 +79,8 @@ def load_index():
     return inverted_index
 
 
-def search_and_rank_query(query, inverted_index, k):
-    p = Parse()
+def search_and_rank_query(query, inverted_index, k, stemming):
+    p = Parse(stemming)
     query_as_list = p.parse_sentence(query)
     searcher = Searcher(inverted_index)
     relevant_docs, documents_dict = searcher.relevant_docs_from_posting(query_as_list)
@@ -93,5 +93,5 @@ def main(corpus_path, output_path, stemming): #, queries, num_doc_to_retrieve):
     query = input("Please enter a query: ")
     k = int(input("Please enter number of docs to retrieve: "))
     inverted_index = load_index()
-    for doc_tuple in search_and_rank_query(query, inverted_index, k):
-        print('tweet id: {}, score (unique common words with query): {}'.format(doc_tuple[0], doc_tuple[1]))
+    for doc_tuple in search_and_rank_query(query, inverted_index, k, stemming):
+        print('tweet id: {}, score (using glove method): {}'.format(doc_tuple[1], doc_tuple[0]))

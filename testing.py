@@ -1,3 +1,5 @@
+import timeit
+
 from indexer import Indexer
 from reader import ReadFile
 from parser_module import Parse
@@ -90,10 +92,8 @@ def main():
     # glove_file = open('glove.twitter.27B.200d.txt', encoding="utf8")
 
 
-    query = "i like big butts and i cannot lie"
-    query_parsed = parse1.parse_sentence(query)
-    inverted = utils.load_obj("inverted_idx")
-    searcher = Searcher(inverted)
+
+
     # relevant_docs = searcher.relevant_docs_from_posting(query_parsed)
     # print(len(relevant_docs))
 
@@ -111,12 +111,55 @@ def main():
     # add = np.add.reduce(my_list)
     # print(add/len(my_list))
 
-    # arr = [(1,'2'), (1,'3'), (2,'1')]
-    # print(sorted(arr, key=lambda element: element[0], reverse=True))
 
-    relevant_docs, documents_dict = searcher.relevant_docs_from_posting(query_parsed)
-    ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs, documents_dict, query_parsed)
-    print(ranked_docs[:5])
+    # start = timeit.default_timer()
+    #
+    # query = "Dr. Anthony Fauci wrote in a 2005 paper published in Virology Journal that hydroxychloroquine was effective in treating SARS"
+    # query_parsed = parse1.parse_sentence(query)
+    # inverted = utils.load_obj("inverted_idx")
+    # searcher = Searcher(inverted)
+    # relevant_docs, documents_dict = searcher.relevant_docs_from_posting(query_parsed)
+    # end_rel = timeit.default_timer()
+    # print("searcher: " + str(end_rel-start) + " seconds")
+    #
+    # ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs, documents_dict, query_parsed)
+    # end_rank = timeit.default_timer()
+    # print("ranker: " + str(end_rank-start) + " seconds")
+    #
+    # print("relevant:")
+    # print(relevant_docs[:5])
+    # print("ranked:")
+    # print(ranked_docs[:5])
+
+
+
+    # check the tweet that came back as relevant after tweet
+    d5 = utils.load_obj("document5")
+    d8 = utils.load_obj("document8")
+    d9 = utils.load_obj("document9")
+
+    print("relevant 1:")
+    print(d5['1291114301873414145']) #relevant 1
+    print("relevant 2:")
+    print(d8['1281073485431922688']) #relevant 2
+
+    print("ranked 1:")
+    print(d8['1284284916591730688']) #ranked 1
+    print("ranked 2:")
+    print(d9['1290899730969563139'])
+
+    # check the tweet that came back as relevant after tweet: "coronavirus eat bat soup"
+    # d5 = utils.load_obj("document5")
+    # # print("relevant 1:")
+    # # print(d5['']) #relevant 1
+    # d8 = utils.load_obj("document8")
+    # print("ranked 1:")
+    # print(d8['1290606964586631168']) #ranked 1
+    # print("ranked 2:")
+    # print(d5['1284506827535704065'])
+
+
+
 
 
 if __name__ == "__main__":
