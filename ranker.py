@@ -18,9 +18,9 @@ class Ranker:
         :return: sorted list of documents by score
         """
         vector_dict = {}
-        vectors_for_doc = []
+        vectors_for_doc = [np.zeros(25)]
         doc_value_dict = {} # key: doc(tweet id), value: avg vector - value of doc
-        glove_file = open('C:\\Users\Chana\Documents\SearchEngine\glove.twitter.27B.200d.txt', encoding="utf8")
+        glove_file = open('glove.twitter.27B.25d.txt', encoding="utf8")
         for line in glove_file:
             records = line.split()
             word = records[0]
@@ -28,13 +28,17 @@ class Ranker:
             vector_dict[word] = vector
         glove_file.close()
 
-        for tweet_id in relevant_docs:
+        for doc in relevant_docs:
+            tweet_id = doc[0]
             modulo = int(tweet_id) % 10
             tweet_term_dict = documents_dict[modulo][tweet_id][0]
             for term in tweet_term_dict:
                 if term in vector_dict:
                     vectors_for_doc.append(vector_dict[term])
-        doc_value_dict[tweet_id] = np.add.reduce(vectors_for_doc)/len(vectors_for_doc)
+            # if np.add.reduce(vectors_for_doc) is not np.nan or len(vectors_for_doc) != 0:
+            doc_value_dict[tweet_id] = np.add.reduce(vectors_for_doc)/len(vectors_for_doc)
+
+            vectors_for_doc = [np.zeros(25)]
 
         vectors_for_query = []
         for term in query_as_list:
@@ -42,16 +46,15 @@ class Ranker:
                 vectors_for_query.append(vector_dict[term])
         query_vector = np.add.reduce(vectors_for_query)/len(vectors_for_query)
 
-        heap_cosSim = []
-        heapq.heapify(heap_cosSim)
-
+        docs_to_return = []
         for tweet_id in doc_value_dict:
             cos_sim = np.dot(doc_value_dict[tweet_id], query_vector) / (norm(doc_value_dict[tweet_id]) * norm(query_vector))
+            docs_to_return.append((cos_sim, tweet_id))
 
-            heapq.heappush(heap_cosSim, (-1*cos_sim, tweet_id)) # -1*cos_sim because heap is minimum heap
-
-        return heap_cosSim
         # return sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
+
+        return sorted(docs_to_return, key=lambda element: element[0], reverse=True)
+
 
     @staticmethod
     def retrieve_top_k(sorted_relevant_docs_heap, k=2000):

@@ -111,9 +111,12 @@ def main():
     # add = np.add.reduce(my_list)
     # print(add/len(my_list))
 
+    # arr = [(1,'2'), (1,'3'), (2,'1')]
+    # print(sorted(arr, key=lambda element: element[0], reverse=True))
+
     relevant_docs, documents_dict = searcher.relevant_docs_from_posting(query_parsed)
     ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs, documents_dict, query_parsed)
-    print(len(ranked_docs))
+    print(ranked_docs[:5])
 
 
 if __name__ == "__main__":

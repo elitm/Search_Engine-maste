@@ -23,6 +23,20 @@ class Indexer:
             self.out = self.config.saveFilesWithoutStem
         self.out += '\\'
 
+        self.doc0 = {}
+        self.doc1 = {}
+        self.doc2 = {}
+        self.doc3 = {}
+        self.doc4 = {}
+        self.doc5 = {}
+        self.doc6 = {}
+        self.doc7 = {}
+        self.doc8 = {}
+        self.doc9 = {}
+        self.documents = {0:self.doc0, 1:self.doc1, 2:self.doc2, 3:self.doc3,
+                          4:self.doc4, 5:self.doc5, 6:self.doc6, 7:self.doc7,
+                          8:self.doc8, 9:self.doc9}
+
         self.a_dict = {}  # key: term, val: array of tuples
         self.b_dict = {}
         self.c_dict = {}
@@ -120,7 +134,8 @@ class Indexer:
         document.unique_terms = unique_terms_counter
         self.docs_count += 1
 
-        self.docs_dict[document.tweet_id] = [document.term_doc_dictionary, document.max_tf]
+        modulo = int(document.tweet_id) % 10
+        self.documents[modulo][document.tweet_id] = [document.term_doc_dictionary, document.max_tf]
 
 
         if self.docs_count == self.DOCS_SIZE or end_of_corpus:  # if we reach chunk size or end of corpus
@@ -128,11 +143,13 @@ class Indexer:
             self.docs_count = 0
             self.posting_dict = {}
 
-            modulo = int(document.tweet_id) % 10
-            documents_dict = utils.load_obj("document" + str(modulo))
-            documents_dict.update(self.docs_dict)
-            utils.save_obj(documents_dict, "document" + str(modulo))
-            self.docs_dict = {}
+            for i in self.documents: # 0 - 9
+                if self.documents[i].__len__() > 10000:
+                    doc = utils.load_obj("document" + str(i))
+                    doc.update(self.documents[i])
+                    utils.save_obj(doc, "document" + str(i))
+                    self.documents[i] = {}
+
 
 
     def add_to_file(self):
@@ -189,6 +206,8 @@ class Indexer:
         # end = timeit.default_timer()
         # print("merge done")
         # print(end - start)
+
+
     def sort_tweet_ids(self):
         s = timeit.default_timer()
 
