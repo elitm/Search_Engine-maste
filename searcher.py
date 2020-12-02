@@ -56,7 +56,7 @@ class Searcher:
                         else:
                             relevant_docs[doc] += 1
             except:
-                print('term {} not found in posting'.format(term))
+                pass
 
 
         relevant_docs_return = sorted(relevant_docs.items(), key=lambda x: x[1], reverse=True)

@@ -80,8 +80,8 @@ def main(corpus_path, output_path, stemming, queries, num_doc_to_retrieve):
     tuple_answers = []
     query_num = 1
     for query in queries_file:
-        print(query)
         for doc_tuple in search_and_rank_query(query[:-1], inverted_index, num_doc_to_retrieve, config):
+            print('tweet id: {} Score: {}'.format(doc_tuple[0], doc_tuple[1]))
             doc_tuple = doc_tuple + (query_num,)
             tuple_answers.append(doc_tuple)
         query_num += 1
