@@ -1,7 +1,6 @@
 import os
 import queue
 import pandas as pd
-import glob
 
 
 class ReadFile:
@@ -11,12 +10,13 @@ class ReadFile:
             for file in files:
                 try:
                     if file[-8:] == ".parquet":
-                        self.queue.put(root + '/' + file)
+                        to_put = os.path.join(os.path.relpath(root, self.corpus_path), file)
+                        self.queue.put(to_put)
                 except:
                     continue
 
-    def __init__(self, corpus_path):
-        self.corpus_path = corpus_path
+    def __init__(self, corpusPath):
+        self.corpus_path = corpusPath
         self.queue = queue.Queue()
         self.init_queue()
 
@@ -31,11 +31,6 @@ class ReadFile:
         df = pd.read_parquet(full_path, engine="pyarrow")
         # print(df.values.tolist())
         return df.values.tolist()
-
-    def read_all_files_from_corpus(self):
-        files = glob.glob(self.corpus_path+'/**/*.parquet')
-        for file in files:
-            self.read_file(file)
 
     def __iter__(self):
         return self

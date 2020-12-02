@@ -17,14 +17,14 @@ def run_engine(config):
     if config.toStem:
         if not os.path.exists(config.savedFileMainFolder + "\\WithStem"):
             os.makedirs(config.savedFileMainFolder + "\\WithStem")
-        out = config.saveFilesWithStem
+        out = config.savedFileMainFolder + "\\WithStem"
     else:
         if not os.path.exists(config.savedFileMainFolder + "\\WithoutStem"):
             os.makedirs(config.savedFileMainFolder + "\\WithoutStem")
-        out = config.saveFilesWithoutStem
+        out = config.savedFileMainFolder + "\\WithoutStem"
     out += '\\'
 
-    r = ReadFile(corpus_path=config.get__corpusPath())
+    r = ReadFile(config.corpusPath)
     p = Parse(config.toStem)
     indexer = Indexer(config, out)
 
@@ -41,16 +41,13 @@ def run_engine(config):
             indexer.add_new_doc(parsed_document, end_of_corpus)
             if end_of_corpus:
                 end_of_corpus = False
-
     for letter in indexer.ABC_dict:
         for idx in range(1, (indexer.counter_dict_files[letter]) + 1):
             indexer.merge_files(indexer.out, letter, letter + str(idx))
             os.remove(out + letter + str(idx) + ".pkl")
-
     p.remove_uppercase_and_entities(indexer)
     indexer.sort_tweet_ids()
     utils.save_obj(indexer.inverted_idx, "inverted_idx")
-
 
 
 def load_index():
@@ -86,7 +83,3 @@ def main(corpus_path, output_path, stemming, queries, num_doc_to_retrieve):
             tuple_answers.append(doc_tuple)
         query_num += 1
     queries_file.close()
-
-
-
-

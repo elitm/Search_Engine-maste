@@ -15,7 +15,6 @@ class Indexer:
         self.config = config
         self.out = out
 
-
         self.doc0 = {}
         self.doc1 = {}
         self.doc2 = {}
@@ -90,7 +89,6 @@ class Indexer:
             with open(self.out + "document" + str(i) + ".pkl", 'wb') as f:
                 pickle.dump({}, f)
 
-
     def add_new_doc(self, document, end_of_corpus):
         """
         This function perform indexing process for a document object.
@@ -135,13 +133,12 @@ class Indexer:
             self.docs_count = 0
             self.posting_dict = {}
 
-            for i in self.documents: # 0 - 9
+            for i in self.documents:  # 0 - 9
                 if self.documents[i].__len__() > 15000:
                     doc = utils.load_obj(self.out + "document" + str(i))
                     doc.update(self.documents[i])
                     utils.save_obj(doc, self.out + "document" + str(i))
                     self.documents[i] = {}
-
 
     def add_to_file(self, end_of_corpus):
 
@@ -163,7 +160,9 @@ class Indexer:
             if self.letter_counter[letter] > 10000 or end_of_corpus:
                 self.counter_dict_files[letter] += 1
                 chank_num = self.counter_dict_files[letter]
-                thread_list.append(threading.Thread(target=utils.save_obj(self.ABC_dict[letter], self.out + letter + str(chank_num)))) # ,args=[self.out + letter + self.chank_num, self.ABC_dict[letter]]))
+                thread_list.append(threading.Thread(target=utils.save_obj(self.ABC_dict[letter],
+                                                                          self.out + letter + str(
+                                                                              chank_num))))  # ,args=[self.out + letter + self.chank_num, self.ABC_dict[letter]]))
                 self.ABC_dict[letter] = {}  # empty the dict for next chunk
                 self.letter_counter[letter] = 0
 
@@ -173,7 +172,7 @@ class Indexer:
         for thread in thread_list:
             thread.join()
 
-    def merge_files(self, out, letter, file_name_letter_idx): #temp_letter_dict):
+    def merge_files(self, out, letter, file_name_letter_idx):  # temp_letter_dict):
 
         permanent_file_name = out + letter
         file_name_letter_idx = utils.load_obj(out + file_name_letter_idx)
@@ -187,12 +186,12 @@ class Indexer:
 
         utils.save_obj(permanent_dict_file, permanent_file_name)
 
-
     def sort_tweet_ids(self):
 
         for letter in self.ABC_dict:
             letter_dict = utils.load_obj(self.out + letter)
             for key in letter_dict:
-                letter_dict[key].sort(key=lambda tup: tup[0])  #adding length of tupple - number of document the term appears
+                letter_dict[key].sort(
+                    key=lambda tup: tup[0])  # adding length of tupple - number of document the term appears
                 letter_dict[key].append(len(letter_dict[key]))
             utils.save_obj(letter_dict, self.out + letter)
