@@ -17,7 +17,7 @@ class Ranker:
         vector_dict = {}
         vectors_for_doc = [np.zeros(25)]
         doc_value_dict = {} # key: doc(tweet id), value: avg vector - value of doc
-        glove_file = open('glove.twitter.27B.25d.txt', encoding="utf8")
+        glove_file = open('../../../../glove.twitter.27B.25d.txt', encoding="utf8")
         for line in glove_file:
             records = line.split()
             word = records[0]

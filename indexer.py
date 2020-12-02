@@ -1,16 +1,13 @@
-import re
 import string
 import pickle
-import timeit
 import threading
-
 import utils
 
 
 class Indexer:
 
     def __init__(self, config, out):
-        self.DOCS_SIZE = 400000
+        self.DOCS_SIZE = 500000
         self.docs_count = 0
         self.docs_dict = {}
         self.inverted_idx = {}
@@ -139,7 +136,7 @@ class Indexer:
             self.posting_dict = {}
 
             for i in self.documents: # 0 - 9
-                if self.documents[i].__len__() > 10000:
+                if self.documents[i].__len__() > 15000:
                     doc = utils.load_obj(self.out + "document" + str(i))
                     doc.update(self.documents[i])
                     utils.save_obj(doc, self.out + "document" + str(i))
@@ -147,14 +144,6 @@ class Indexer:
 
 
     def add_to_file(self, end_of_corpus):
-
-        # for term in self.posting_dict:
-        #     # if len(term) > 0: # why would term be empty
-        #     # if not term[0].isalpha():
-        #     if not re.match("^[a-zA-Z]", term):
-        #         obj_dict["@"].append([term, self.posting_dict[term]])
-        #     else:
-        #         obj_dict[term[0].lower()].append([term,self.posting_dict[term]])
 
         for term in self.posting_dict:
 
@@ -169,11 +158,6 @@ class Indexer:
                 continue
 
         thread_list = []
-        # for letter in self.ABC_dict:
-        #     # utils.save_obj(self.ABC_dict[letter], letter + "Temp")
-        #     if self.letter_counter[letter] > 15000 or end_of_corpus:
-        #         thread_list.append(
-        #             threading.Thread(target=self.merge_files, args=[self.out, letter, self.ABC_dict[letter]]))
 
         for letter in self.ABC_dict:
             if self.letter_counter[letter] > 10000 or end_of_corpus:
@@ -191,20 +175,9 @@ class Indexer:
 
     def merge_files(self, out, letter, file_name_letter_idx): #temp_letter_dict):
 
-        # start = timeit.default_timer()
         permanent_file_name = out + letter
         file_name_letter_idx = utils.load_obj(out + file_name_letter_idx)
         permanent_dict_file = utils.load_obj(permanent_file_name)
-
-        # for key in temp_letter_dict:
-        #     if key in permanent_dict_file:
-        #         permanent_dict_file[key].extend(temp_letter_dict[key])
-        #     else:
-        #         permanent_dict_file[key] = temp_letter_dict[key]
-        #
-        # utils.save_obj(permanent_dict_file, permanent_file_name)
-        # self.ABC_dict[letter] = {}  # empty the dict for next chunk
-        # self.letter_counter[letter] = 0
 
         for key in file_name_letter_idx:
             if key in permanent_dict_file:
@@ -216,14 +189,10 @@ class Indexer:
 
 
     def sort_tweet_ids(self):
-        s = timeit.default_timer()
 
         for letter in self.ABC_dict:
             letter_dict = utils.load_obj(self.out + letter)
             for key in letter_dict:
-                letter_dict[key].sort(key=lambda tup: tup[0])  # TODO python sort vs. our own sort: check runtime
+                letter_dict[key].sort(key=lambda tup: tup[0])  #adding length of tupple - number of document the term appears
                 letter_dict[key].append(len(letter_dict[key]))
             utils.save_obj(letter_dict, self.out + letter)
-
-        e = timeit.default_timer()
-        print("sorting tweet ids:" + str(e - s) + " seconds")

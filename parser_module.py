@@ -172,20 +172,12 @@ class Parse:
         :param doc_as_list: list re-preseting the tweet.
         :return: Document object with corresponding fields.
         """
-        # tweet_id = doc_as_list[0]
-        # tweet_date = doc_as_list[1]
-        # full_text = doc_as_list[2]
-        # url = doc_as_list[3]
-        # retweet_text = doc_as_list[4]
-        # retweet_url = doc_as_list[5]
-        # quote_text = doc_as_list[6]
-        # quote_url = doc_as_list[7]
 
         tweet_id = doc_as_list[0]
         tweet_date = doc_as_list[1]
         full_text = doc_as_list[2]
         url = doc_as_list[3]
-        indice = doc_as_list[4]  # TODO why do we fking need indices
+        indice = doc_as_list[4]
         retweet_text = doc_as_list[5]
         retweet_url = doc_as_list[6]
         retweet_indice = doc_as_list[7]
@@ -199,20 +191,11 @@ class Parse:
         term_dict = {}
 
         tokenized_text = self.parse_sentence(full_text)
-        # tokenized_retweet = self.parse_sentence(retweet_text)
         tokenized_quote = self.parse_sentence(quote_text)
         tokenized_url = self.handle_url(url)
-        # tokenized_retweet_url = self.handle_url(retweet_url)
-        # tokenized_quote_url = self.handle_url(quote_url)
-        #
-        # tokenized_rt_quote_text = self.parse_sentence(retweet_quoted_text)
-        # tokenized_rt_quoted_url = self.handle_url(retweet_quoted_url)
 
         doc_length = len(tokenized_text)  # after text operations - length of full_text
 
-
-        # new_tokenized_text = tokenized_text + tokenized_retweet + tokenized_quote + tokenized_url + tokenized_retweet_url + tokenized_quote_url +\
-        #     tokenized_rt_quote_text + tokenized_rt_quoted_url
         new_tokenized_text = tokenized_text + tokenized_url + tokenized_quote
 
         if self.stemming is True:
@@ -230,9 +213,6 @@ class Parse:
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
-
-        # document = Document(tweet_id, tweet_date, full_text, url, quote_text,
-        #                     term_dict, doc_length)
 
         return document
 

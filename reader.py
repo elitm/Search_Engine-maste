@@ -33,15 +33,6 @@ class ReadFile:
         return df.values.tolist()
 
     def read_all_files_from_corpus(self):
-        # dirs_in_corpus = os.listdir(self.corpus_path)
-        # for dirname in dirs_in_corpus:
-        #     if dirname.endswith("2020"):
-        #         joined_name = os.path.join(self.corpus_path, dirname)
-        #         filelist = os.listdir(joined_name)
-        #         for filename in filelist:
-        #             if filename.endswith(".snappy"):
-        #                 # print(os.path.join(joined_name, file))
-        #                 self.read_file(os.path.join(joined_name, filename))
         files = glob.glob(self.corpus_path+'/**/*.parquet')
         for file in files:
             self.read_file(file)

@@ -23,8 +23,8 @@ def load_obj(name):
         return pickle.load(f)
 
 
-def load_inverted_index():
-    with open('inverted_idx.pkl', 'wb') as f:
+def load_inverted_index(path):
+    with open(path +'\\inverted_idx.pkl', 'rb') as f:
         return pickle.load(f)
 
 

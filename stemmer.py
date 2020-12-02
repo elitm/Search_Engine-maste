@@ -1,6 +1,5 @@
-# from nltk.stem import snowball
 from nltk import PorterStemmer
-# from nltk.stem import porter
+
 
 
 class Stemmer:

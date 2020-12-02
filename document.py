@@ -31,9 +31,6 @@ class Document:
         # self.max_tf = 0
         self.unique_terms = 0
 
-    # @staticmethod
-    # def update_doc_id():
-    #     Document.doc_id += 1
 
 
     def __str__(self) -> str:
