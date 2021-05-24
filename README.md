@@ -1,3 +1,2 @@
 # Search_Engine
-The is a skeleton of a search engine project for your convenience.
-Please follow the instructions provided in the file: intructions.txt
+search engine in Python using NLP and informational retrieval algorithms with a data set of over 10,000,000 tweets
