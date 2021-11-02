@@ -36,4 +36,3 @@ Searcher – The term from the query is searched in all letter posting files mat
 Ranker – Rates the relevance of each document to the query. Returns K most relevent documents by score. score is calculate at score class. 
 
 Score - Stores the necessary data of every document to calculate its score. Score use **'GolVe'** modle to find score similarity. we calculate the angle between the tweet (dcument) vector to the query vector.
-
