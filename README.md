@@ -1,9 +1,12 @@
 <h3>Information Retrieval Search Engine</h3>
 
+-------
 
 search engine written in **Python** using NLP and informational retrieval algorithms with a data set of over 10,000,000 tweets.
 
 The project was built in two programming phases – indexing and retrieving.
+
+-------
 
 <h4>Indexing the Documents</h4>
 
@@ -19,6 +22,7 @@ Parser – Separates every tweet to tokens according to specific parsing rules r
 
 Stemmer – Stemming is the process of reducing inflected (or sometimes derived) words to their word stem, base or root form. implemented using an open-source stemmer.
 
+-------
 
 <h4>Retrieving Relevant Documents </h4>
 
